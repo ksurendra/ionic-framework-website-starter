@@ -1,5 +1,8 @@
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { Color, Mode, StyleEventDetail } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { Color, StyleEventDetail } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Label implements ComponentInterface {
     el: HTMLElement;
     /**
@@ -8,10 +11,6 @@ export declare class Label implements ComponentInterface {
      * For more information on colors, see [theming](/docs/theming/basics).
      */
     color?: Color;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * The position determines where and how the label behaves inside an item.
      */
@@ -26,12 +25,5 @@ export declare class Label implements ComponentInterface {
     componentDidLoad(): void;
     positionChanged(): void;
     private emitStyle;
-    hostData(): {
-        class: {
-            [`label-no-animate`]: boolean;
-        } | {
-            [x: string]: boolean;
-            [`label-no-animate`]: boolean;
-        };
-    };
+    render(): any;
 }

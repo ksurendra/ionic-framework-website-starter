@@ -1,9 +1,18 @@
+import { Component, Host, h } from '@stencil/core';
+import { getIonMode } from '../../global/ionic-global';
 export class Avatar {
     render() {
-        return h("slot", null);
+        return (h(Host, { class: getIonMode(this) },
+            h("slot", null)));
     }
     static get is() { return "ion-avatar"; }
     static get encapsulation() { return "shadow"; }
-    static get style() { return "/**style-placeholder:ion-avatar:**/"; }
-    static get styleMode() { return "/**style-id-placeholder:ion-avatar:**/"; }
+    static get originalStyleUrls() { return {
+        "ios": ["avatar.ios.scss"],
+        "md": ["avatar.md.scss"]
+    }; }
+    static get styleUrls() { return {
+        "ios": ["avatar.ios.css"],
+        "md": ["avatar.md.css"]
+    }; }
 }

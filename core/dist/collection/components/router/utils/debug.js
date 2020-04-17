@@ -1,5 +1,5 @@
 import { generatePath } from './path';
-export function printRoutes(routes) {
+export const printRoutes = (routes) => {
     console.group(`[ion-core] ROUTES[${routes.length}]`);
     for (const chain of routes) {
         const path = [];
@@ -8,8 +8,8 @@ export function printRoutes(routes) {
         console.debug(`%c ${generatePath(path)}`, 'font-weight: bold; padding-left: 20px', '=>\t', `(${ids.join(', ')})`);
     }
     console.groupEnd();
-}
-export function printRedirects(redirects) {
+};
+export const printRedirects = (redirects) => {
     console.group(`[ion-core] REDIRECTS[${redirects.length}]`);
     for (const redirect of redirects) {
         if (redirect.to) {
@@ -17,4 +17,4 @@ export function printRedirects(redirects) {
         }
     }
     console.groupEnd();
-}
+};

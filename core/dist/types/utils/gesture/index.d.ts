@@ -1,30 +1,28 @@
-import { QueueApi } from '../../stencil.core';
 import { GESTURE_CONTROLLER } from './gesture-controller';
-export declare function createGesture(config: GestureConfig): Gesture;
+export declare const createGesture: (config: GestureConfig) => Gesture;
 export interface GestureDetail {
     type: string;
     startX: number;
     startY: number;
-    startTimeStamp: number;
+    startTime: number;
     currentX: number;
     currentY: number;
     velocityX: number;
     velocityY: number;
     deltaX: number;
     deltaY: number;
-    timeStamp: number;
+    currentTime: number;
     event: UIEvent;
     data?: any;
 }
 export declare type GestureCallback = (detail: GestureDetail) => boolean | void;
 export interface Gesture {
-    setDisabled(disabled: boolean): void;
+    enable(enable?: boolean): void;
     destroy(): void;
 }
 export interface GestureConfig {
     el: Node;
     disableScroll?: boolean;
-    queue: QueueApi;
     direction?: 'x' | 'y';
     gestureName: string;
     gesturePriority?: number;

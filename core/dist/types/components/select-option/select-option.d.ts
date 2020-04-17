@@ -1,4 +1,4 @@
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
+import { ComponentInterface } from '../../stencil-public-runtime';
 export declare class SelectOption implements ComponentInterface {
     private inputId;
     el: HTMLElement;
@@ -7,28 +7,8 @@ export declare class SelectOption implements ComponentInterface {
      */
     disabled: boolean;
     /**
-     * If `true`, the element is selected.
-     */
-    selected: boolean;
-    /**
      * The text value of the option.
      */
     value?: any | null;
-    /**
-     * Emitted when the select option loads.
-     * @internal
-     */
-    ionSelectOptionDidLoad: EventEmitter<void>;
-    /**
-     * Emitted when the select option unloads.
-     * @internal
-     */
-    ionSelectOptionDidUnload: EventEmitter<void>;
-    componentWillLoad(): void;
-    componentDidLoad(): void;
-    componentDidUnload(): void;
-    hostData(): {
-        'role': string;
-        'id': string;
-    };
+    render(): any;
 }

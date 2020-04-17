@@ -1,8 +1,5 @@
 import { Animation } from '../../../interface';
 /**
- * iOS Modal Enter Animation
+ * iOS Modal Enter Animation for the Card presentation style
  */
-export declare function iosEnterAnimation(AnimationC: Animation, baseEl: HTMLElement): Promise<Animation>;
-/**
- * Animations for modals
- */
+export declare const iosEnterAnimation: (baseEl: HTMLElement, presentingEl?: HTMLElement | undefined) => Animation;

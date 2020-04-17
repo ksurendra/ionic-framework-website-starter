@@ -6,16 +6,22 @@ const INPUT_BLURRING = true;
 const SCROLL_ASSIST = true;
 const SCROLL_PADDING = true;
 const HIDE_CARET = true;
-export function startInputShims(doc, config) {
+export const startInputShims = (config) => {
+    const doc = document;
     const keyboardHeight = config.getNumber('keyboardHeight', 290);
     const scrollAssist = config.getBoolean('scrollAssist', true);
     const hideCaret = config.getBoolean('hideCaretOnScroll', true);
     const inputBlurring = config.getBoolean('inputBlurring', true);
     const scrollPadding = config.getBoolean('scrollPadding', true);
+    const inputs = Array.from(doc.querySelectorAll('ion-input, ion-textarea'));
     const hideCaretMap = new WeakMap();
     const scrollAssistMap = new WeakMap();
-    function registerInput(componentEl) {
-        const inputEl = (componentEl.shadowRoot || componentEl).querySelector('input');
+    const registerInput = async (componentEl) => {
+        if (componentEl.componentOnReady) {
+            await componentEl.componentOnReady();
+        }
+        const inputRoot = componentEl.shadowRoot || componentEl;
+        const inputEl = inputRoot.querySelector('input') || inputRoot.querySelector('textarea');
         const scrollEl = componentEl.closest('ion-content');
         if (!inputEl) {
             return;
@@ -28,8 +34,8 @@ export function startInputShims(doc, config) {
             const rmFn = enableScrollAssist(componentEl, inputEl, scrollEl, keyboardHeight);
             scrollAssistMap.set(componentEl, rmFn);
         }
-    }
-    function unregisterInput(componentEl) {
+    };
+    const unregisterInput = (componentEl) => {
         if (HIDE_CARET && hideCaret) {
             const fn = hideCaretMap.get(componentEl);
             if (fn) {
@@ -44,21 +50,23 @@ export function startInputShims(doc, config) {
             }
             scrollAssistMap.delete(componentEl);
         }
-    }
+    };
     if (inputBlurring && INPUT_BLURRING) {
-        enableInputBlurring(doc);
+        enableInputBlurring();
     }
     if (scrollPadding && SCROLL_PADDING) {
-        enableScrollPadding(doc, keyboardHeight);
+        enableScrollPadding(keyboardHeight);
     }
-    const inputs = Array.from(doc.querySelectorAll('ion-input'));
+    // Input might be already loaded in the DOM before ion-device-hacks did.
+    // At this point we need to look for all of the inputs not registered yet
+    // and register them.
     for (const input of inputs) {
         registerInput(input);
     }
-    doc.body.addEventListener('ionInputDidLoad', event => {
-        registerInput(event.target);
-    });
-    doc.body.addEventListener('ionInputDidUnload', event => {
-        unregisterInput(event.target);
-    });
-}
+    doc.addEventListener('ionInputDidLoad', ((ev) => {
+        registerInput(ev.detail);
+    }));
+    doc.addEventListener('ionInputDidUnload', ((ev) => {
+        unregisterInput(ev.detail);
+    }));
+};

@@ -1,19 +1,16 @@
-export function hostContext(selector, el) {
+export const hostContext = (selector, el) => {
     return el.closest(selector) !== null;
-}
-export function createColorClasses(color) {
+};
+/**
+ * Create the mode and color classes for the component based on the classes passed in
+ */
+export const createColorClasses = (color) => {
     return (typeof color === 'string' && color.length > 0) ? {
         'ion-color': true,
         [`ion-color-${color}`]: true
     } : undefined;
-}
-export function createThemedClasses(mode, name) {
-    return {
-        [name]: true,
-        [`${name}-${mode}`]: mode !== undefined
-    };
-}
-export function getClassList(classes) {
+};
+export const getClassList = (classes) => {
     if (classes !== undefined) {
         const array = Array.isArray(classes) ? classes : classes.split(' ');
         return array
@@ -22,23 +19,22 @@ export function getClassList(classes) {
             .filter(c => c !== '');
     }
     return [];
-}
-export function getClassMap(classes) {
+};
+export const getClassMap = (classes) => {
     const map = {};
     getClassList(classes).forEach(c => map[c] = true);
     return map;
-}
+};
 const SCHEME = /^[a-z][a-z0-9+\-.]*:/;
-export async function openURL(win, url, ev, direction) {
+export const openURL = async (url, ev, direction) => {
     if (url != null && url[0] !== '#' && !SCHEME.test(url)) {
-        const router = win.document.querySelector('ion-router');
+        const router = document.querySelector('ion-router');
         if (router) {
             if (ev != null) {
                 ev.preventDefault();
             }
-            await router.componentOnReady();
             return router.push(url, direction);
         }
     }
     return false;
-}
+};

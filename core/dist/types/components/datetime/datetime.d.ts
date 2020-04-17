@@ -1,20 +1,17 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { DatetimeChangeEventDetail, DatetimeOptions, Mode, StyleEventDetail } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { DatetimeChangeEventDetail, DatetimeOptions, StyleEventDetail } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Datetime implements ComponentInterface {
     private inputId;
     private locale;
     private datetimeMin;
     private datetimeMax;
     private datetimeValue;
+    private buttonEl?;
     el: HTMLIonDatetimeElement;
     isExpanded: boolean;
-    keyFocus: boolean;
-    pickerCtrl: HTMLIonPickerControllerElement;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * The name of the control, which is submitted with the form data.
      */
@@ -23,6 +20,10 @@ export declare class Datetime implements ComponentInterface {
      * If `true`, the user cannot interact with the datetime.
      */
     disabled: boolean;
+    /**
+     * If `true`, the datetime appears normal but is not interactive.
+     */
+    readonly: boolean;
     protected disabledChanged(): void;
     /**
      * The minimum datetime allowed. Value must be a date string
@@ -50,6 +51,13 @@ export declare class Datetime implements ComponentInterface {
      * more info. Defaults to `MMM D, YYYY`.
      */
     displayFormat: string;
+    /**
+     * The timezone to use for display purposes only. See
+     * [Date.prototype.toLocaleString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString)
+     * for a list of supported timezones. If no value is provided, the
+     * component will default to displaying times in the user's local timezone.
+     */
+    displayTimezone?: string;
     /**
      * The format of the date and time picker columns the user selects.
      * A datetime input can have one or many datetime parts, each getting their
@@ -130,7 +138,7 @@ export declare class Datetime implements ComponentInterface {
     dayShortNames?: string[] | string;
     /**
      * Any additional options that the picker interface can accept.
-     * See the [Picker API docs](../../picker/Picker) for the picker options.
+     * See the [Picker API docs](../picker) for the picker options.
      */
     pickerOptions?: DatetimeOptions;
     /**
@@ -176,26 +184,14 @@ export declare class Datetime implements ComponentInterface {
     private updateDatetimeValue;
     private generatePickerOptions;
     private generateColumns;
-    private validate;
+    private validateColumns;
     private calcMinMax;
     private validateColumn;
-    private getText;
+    private get text();
     private hasValue;
+    private setFocus;
     private onClick;
-    private onKeyUp;
     private onFocus;
     private onBlur;
-    hostData(): {
-        'role': string;
-        'aria-disabled': string | null;
-        'aria-expanded': string;
-        'aria-haspopup': string;
-        'aria-labelledby': string;
-        class: {
-            'datetime-disabled': boolean;
-            'datetime-placeholder': boolean;
-            'in-item': boolean;
-        };
-    };
-    render(): JSX.Element[];
+    render(): any;
 }

@@ -1,4 +1,4 @@
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
 export declare class RouteRedirect implements ComponentInterface {
     /**
      * A redirect route, redirects "from" a URL "to" another URL. This property is that "from" URL.
@@ -32,6 +32,5 @@ export declare class RouteRedirect implements ComponentInterface {
      */
     ionRouteRedirectChanged: EventEmitter;
     propDidChange(): void;
-    componentDidLoad(): void;
-    componentDidUnload(): void;
+    connectedCallback(): void;
 }

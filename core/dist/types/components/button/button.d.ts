@@ -1,21 +1,28 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { Color, Mode, RouterDirection } from '../../interface';
-export declare class Button implements ComponentInterface {
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { Color, RouterDirection } from '../../interface';
+import { AnchorInterface, ButtonInterface } from '../../utils/element-interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ *
+ * @slot - Content is placed between the named slots if provided without a slot.
+ * @slot icon-only - Should be used on an icon in a button that has no text.
+ * @slot start - Content is placed to the left of the button text in LTR, and to the right in RTL.
+ * @slot end - Content is placed to the right of the button text in LTR, and to the left in RTL.
+ *
+ * @TODOpart button - The native button or anchor tag that is rendered.
+ * @TODOpart button-inner - The span inside of the native button or anchor.
+ */
+export declare class Button implements ComponentInterface, AnchorInterface, ButtonInterface {
+    private inItem;
+    private inListHeader;
     private inToolbar;
     el: HTMLElement;
-    win: Window;
-    keyFocus: boolean;
     /**
      * The color to use from your application's color palette.
      * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
      * For more information on colors, see [theming](/docs/theming/basics).
      */
     color?: Color;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * The type of button.
      */
@@ -41,10 +48,22 @@ export declare class Button implements ComponentInterface {
      */
     routerDirection: RouterDirection;
     /**
+     * This attribute instructs browsers to download a URL instead of navigating to
+     * it, so the user will be prompted to save it as a local file. If the attribute
+     * has a value, it is used as the pre-filled file name in the Save prompt
+     * (the user can still change the file name if they want).
+     */
+    download: string | undefined;
+    /**
      * Contains a URL or a URL fragment that the hyperlink points to.
      * If this property is set, an anchor tag will be rendered.
      */
-    href?: string;
+    href: string | undefined;
+    /**
+     * Specifies the relationship of the target object to the link object.
+     * The value is a space-separated list of [link types](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types).
+     */
+    rel: string | undefined;
     /**
      * The button shape.
      */
@@ -58,6 +77,12 @@ export declare class Button implements ComponentInterface {
      */
     strong: boolean;
     /**
+     * Specifies where to display the linked URL.
+     * Only applies when an `href` is provided.
+     * Special keywords: `"_blank"`, `"_self"`, `"_parent"`, `"_top"`.
+     */
+    target: string | undefined;
+    /**
      * The type of the button.
      */
     type: 'submit' | 'reset' | 'button';
@@ -70,22 +95,10 @@ export declare class Button implements ComponentInterface {
      */
     ionBlur: EventEmitter<void>;
     componentWillLoad(): void;
+    private get hasIconOnly();
+    private get rippleType();
+    private handleClick;
     private onFocus;
-    private onKeyUp;
     private onBlur;
-    private onClick;
-    hostData(): {
-        'aria-disabled': string | null;
-        class: {
-            'focused': boolean;
-            'button-disabled': boolean;
-            'ion-activatable': boolean;
-        } | {
-            [x: string]: boolean;
-            'focused': boolean;
-            'button-disabled': boolean;
-            'ion-activatable': boolean;
-        };
-    };
-    render(): JSX.Element;
+    render(): any;
 }

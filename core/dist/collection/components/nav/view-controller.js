@@ -16,6 +16,9 @@ export class ViewController {
             this.element = await attachComponent(this.delegate, container, component, ['ion-page', 'ion-page-invisible'], this.params);
         }
     }
+    /**
+     * DOM WRITE
+     */
     _destroy() {
         assert(this.state !== VIEW_STATE_DESTROYED, 'view state must be ATTACHED');
         const element = this.element;
@@ -31,7 +34,7 @@ export class ViewController {
         this.state = VIEW_STATE_DESTROYED;
     }
 }
-export function matches(view, id, params) {
+export const matches = (view, id, params) => {
     if (!view) {
         return false;
     }
@@ -53,14 +56,15 @@ export function matches(view, id, params) {
     if (keysA.length !== keysB.length) {
         return false;
     }
+    // Test for A's keys different from B.
     for (const key of keysA) {
         if (currentParams[key] !== params[key]) {
             return false;
         }
     }
     return true;
-}
-export function convertToView(page, params) {
+};
+export const convertToView = (page, params) => {
     if (!page) {
         return null;
     }
@@ -68,8 +72,8 @@ export function convertToView(page, params) {
         return page;
     }
     return new ViewController(page, params);
-}
-export function convertToViews(pages) {
+};
+export const convertToViews = (pages) => {
     return pages.map(page => {
         if (page instanceof ViewController) {
             return page;
@@ -79,4 +83,4 @@ export function convertToViews(pages) {
         }
         return convertToView(page, undefined);
     }).filter(v => v !== null);
-}
+};

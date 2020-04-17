@@ -1,8 +1,7 @@
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
 export declare class Backdrop implements ComponentInterface {
     private lastClick;
     private blocker;
-    doc: Document;
     /**
      * If `true`, the backdrop will be visible.
      */
@@ -19,16 +18,10 @@ export declare class Backdrop implements ComponentInterface {
      * Emitted when the backdrop is tapped.
      */
     ionBackdropTap: EventEmitter<void>;
-    componentDidLoad(): void;
-    componentDidUnload(): void;
+    connectedCallback(): void;
+    disconnectedCallback(): void;
     protected onTouchStart(ev: TouchEvent): void;
     protected onMouseDown(ev: TouchEvent): void;
     private emitTap;
-    hostData(): {
-        tabindex: string;
-        class: {
-            'backdrop-hide': boolean;
-            'backdrop-no-tappable': boolean;
-        };
-    };
+    render(): any;
 }

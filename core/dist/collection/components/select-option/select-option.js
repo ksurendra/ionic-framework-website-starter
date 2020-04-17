@@ -1,59 +1,61 @@
+import { Component, Element, Host, Prop, h } from '@stencil/core';
+import { getIonMode } from '../../global/ionic-global';
 export class SelectOption {
     constructor() {
         this.inputId = `ion-selopt-${selectOptionIds++}`;
+        /**
+         * If `true`, the user cannot interact with the select option.
+         */
         this.disabled = false;
-        this.selected = false;
     }
-    componentWillLoad() {
-        if (this.value === undefined) {
-            this.value = this.el.textContent || '';
-        }
-    }
-    componentDidLoad() {
-        this.ionSelectOptionDidLoad.emit();
-    }
-    componentDidUnload() {
-        this.ionSelectOptionDidUnload.emit();
-    }
-    hostData() {
-        return {
-            'role': 'option',
-            'id': this.inputId
-        };
+    render() {
+        return (h(Host, { role: "option", id: this.inputId, class: getIonMode(this) }));
     }
     static get is() { return "ion-select-option"; }
     static get encapsulation() { return "shadow"; }
+    static get originalStyleUrls() { return {
+        "$": ["select-option.scss"]
+    }; }
+    static get styleUrls() { return {
+        "$": ["select-option.css"]
+    }; }
     static get properties() { return {
         "disabled": {
-            "type": Boolean,
-            "attr": "disabled"
-        },
-        "el": {
-            "elementRef": true
-        },
-        "selected": {
-            "type": Boolean,
-            "attr": "selected"
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the user cannot interact with the select option."
+            },
+            "attribute": "disabled",
+            "reflect": false,
+            "defaultValue": "false"
         },
         "value": {
-            "type": "Any",
-            "attr": "value",
-            "mutable": true
+            "type": "any",
+            "mutable": false,
+            "complexType": {
+                "original": "any | null",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "The text value of the option."
+            },
+            "attribute": "value",
+            "reflect": false
         }
     }; }
-    static get events() { return [{
-            "name": "ionSelectOptionDidLoad",
-            "method": "ionSelectOptionDidLoad",
-            "bubbles": true,
-            "cancelable": true,
-            "composed": true
-        }, {
-            "name": "ionSelectOptionDidUnload",
-            "method": "ionSelectOptionDidUnload",
-            "bubbles": true,
-            "cancelable": true,
-            "composed": true
-        }]; }
-    static get style() { return "/**style-placeholder:ion-select-option:**/"; }
+    static get elementRef() { return "el"; }
 }
 let selectOptionIds = 0;

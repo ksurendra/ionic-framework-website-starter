@@ -1,20 +1,16 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { Animation, AnimationBuilder, ComponentProps, ComponentRef, Config, FrameworkDelegate, Mode, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { AnimationBuilder, ComponentProps, ComponentRef, FrameworkDelegate, OverlayEventDetail, OverlayInterface } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Popover implements ComponentInterface, OverlayInterface {
     private usersElement?;
     presented: boolean;
-    animation?: Animation;
-    el: HTMLElement;
-    config: Config;
+    el: HTMLIonPopoverElement;
     /** @internal */
     delegate?: FrameworkDelegate;
     /** @internal */
     overlayIndex: number;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * Animation to use when the popover is presented.
      */
@@ -54,6 +50,8 @@ export declare class Popover implements ComponentInterface, OverlayInterface {
     showBackdrop: boolean;
     /**
      * If `true`, the popover will be translucent.
+     * Only applies when the mode is `"ios"` and the device supports
+     * [`backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter#Browser_compatibility).
      */
     translucent: boolean;
     /**
@@ -76,15 +74,16 @@ export declare class Popover implements ComponentInterface, OverlayInterface {
      * Emitted after the popover has dismissed.
      */
     didDismiss: EventEmitter<OverlayEventDetail>;
-    protected onDismiss(ev: UIEvent): void;
-    protected onBackdropTap(): void;
-    protected lifecycle(modalEvent: CustomEvent): void;
+    constructor();
     /**
      * Present the popover overlay after it has been created.
      */
     present(): Promise<void>;
     /**
      * Dismiss the popover overlay after it has been presented.
+     *
+     * @param data Any data to emit in the dismiss events.
+     * @param role The role of the element that is dismissing the popover. For example, 'cancel' or 'backdrop'.
      */
     dismiss(data?: any, role?: string): Promise<boolean>;
     /**
@@ -95,14 +94,8 @@ export declare class Popover implements ComponentInterface, OverlayInterface {
      * Returns a promise that resolves when the popover will dismiss.
      */
     onWillDismiss(): Promise<OverlayEventDetail>;
-    hostData(): {
-        style: {
-            zIndex: number;
-        };
-        'no-router': boolean;
-        class: {
-            'popover-translucent': boolean;
-        };
-    };
-    render(): JSX.Element[];
+    private onDismiss;
+    private onBackdropTap;
+    private onLifecycle;
+    render(): any;
 }

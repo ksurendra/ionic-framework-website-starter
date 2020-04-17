@@ -1,17 +1,14 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { ActionSheetButton, Animation, AnimationBuilder, Config, Mode, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { ActionSheetButton, AnimationBuilder, OverlayEventDetail, OverlayInterface } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class ActionSheet implements ComponentInterface, OverlayInterface {
     presented: boolean;
-    animation?: Animation;
-    el: HTMLElement;
-    config: Config;
+    animation?: any;
+    el: HTMLIonActionSheetElement;
     /** @internal */
     overlayIndex: number;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
      */
@@ -47,6 +44,8 @@ export declare class ActionSheet implements ComponentInterface, OverlayInterface
     subHeader?: string;
     /**
      * If `true`, the action sheet will be translucent.
+     * Only applies when the mode is `"ios"` and the device supports
+     * [`backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter#Browser_compatibility).
      */
     translucent: boolean;
     /**
@@ -69,35 +68,34 @@ export declare class ActionSheet implements ComponentInterface, OverlayInterface
      * Emitted after the alert has dismissed.
      */
     didDismiss: EventEmitter<OverlayEventDetail>;
-    protected onBackdropTap(): void;
-    protected dispatchCancelHandler(ev: CustomEvent): void;
     /**
      * Present the action sheet overlay after it has been created.
      */
     present(): Promise<void>;
+    constructor();
     /**
      * Dismiss the action sheet overlay after it has been presented.
+     *
+     * @param data Any data to emit in the dismiss events.
+     * @param role The role of the element that is dismissing the action sheet.
+     * This can be useful in a button handler for determining which button was
+     * clicked to dismiss the action sheet.
+     * Some examples include: ``"cancel"`, `"destructive"`, "selected"`, and `"backdrop"`.
      */
     dismiss(data?: any, role?: string): Promise<boolean>;
     /**
-     * Returns a promise that resolves when the action-sheet did dismiss.
+     * Returns a promise that resolves when the action sheet did dismiss.
      */
     onDidDismiss(): Promise<OverlayEventDetail>;
     /**
-     * Returns a promise that resolves when the action-sheet will dismiss.
+     * Returns a promise that resolves when the action sheet will dismiss.
      *
      */
     onWillDismiss(): Promise<OverlayEventDetail>;
     private buttonClick;
     private callButtonHandler;
     private getButtons;
-    hostData(): {
-        style: {
-            zIndex: number;
-        };
-        class: {
-            'action-sheet-translucent': boolean;
-        };
-    };
-    render(): JSX.Element[];
+    private onBackdropTap;
+    private dispatchCancelHandler;
+    render(): any;
 }

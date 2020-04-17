@@ -133,14 +133,20 @@ export interface IonicConfig {
      * Provides a custom leave animation for all `ion-picker`, overriding the default "animation".
      */
     pickerLeave?: AnimationBuilder;
+    /**
+     * EXPERIMENTAL: Adds a page shadow to transitioning pages on iOS. Disabled by default.
+     */
+    experimentalTransitionShadow?: boolean;
     keyboardHeight?: number;
     inputShims?: boolean;
-    scrollPadding?: string;
-    inputBlurring?: string;
+    scrollPadding?: boolean;
+    inputBlurring?: boolean;
     scrollAssist?: boolean;
-    hideCaretOnScroll?: string;
+    hideCaretOnScroll?: boolean;
     persistConfig?: boolean;
     _forceStatusbarPadding?: boolean;
     _testing?: boolean;
+    _zoneGate?: (h: () => any) => any;
 }
-export declare function setupConfig(config: IonicConfig): any;
+export declare const setupConfig: (config: IonicConfig) => any;
+export declare const getMode: () => Mode;

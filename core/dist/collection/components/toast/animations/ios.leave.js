@@ -1,25 +1,29 @@
-export function iosLeaveAnimation(AnimationC, baseEl, position) {
-    const baseAnimation = new AnimationC();
-    const wrapperAnimation = new AnimationC();
+import { createAnimation } from '../../../utils/animation/animation';
+/**
+ * iOS Toast Leave Animation
+ */
+export const iosLeaveAnimation = (baseEl, position) => {
+    const baseAnimation = createAnimation();
+    const wrapperAnimation = createAnimation();
     const hostEl = baseEl.host || baseEl;
     const wrapperEl = baseEl.querySelector('.toast-wrapper');
-    wrapperAnimation.addElement(wrapperEl);
     const bottom = `calc(-10px - var(--ion-safe-area-bottom, 0px))`;
     const top = `calc(10px + var(--ion-safe-area-top, 0px))`;
+    wrapperAnimation.addElement(wrapperEl);
     switch (position) {
         case 'top':
-            wrapperAnimation.fromTo('translateY', top, '-100%');
+            wrapperAnimation.fromTo('transform', `translateY(${top})`, 'translateY(-100%)');
             break;
         case 'middle':
             wrapperAnimation.fromTo('opacity', 0.99, 0);
             break;
         default:
-            wrapperAnimation.fromTo('translateY', bottom, '100%');
+            wrapperAnimation.fromTo('transform', `translateY(${bottom})`, 'translateY(100%)');
             break;
     }
-    return Promise.resolve(baseAnimation
+    return baseAnimation
         .addElement(hostEl)
         .easing('cubic-bezier(.36,.66,.04,1)')
         .duration(300)
-        .add(wrapperAnimation));
-}
+        .addAnimation(wrapperAnimation);
+};

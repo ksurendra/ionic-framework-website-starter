@@ -1,13 +1,17 @@
-import { EventEmitter } from '../stencil.core';
+import { EventEmitter } from '../stencil-public-runtime';
 import { Side } from '../interface';
-export declare function rIC(callback: () => void): void;
-export declare function hasShadowDom(el: HTMLElement): boolean;
-export declare function findItemLabel(componentEl: HTMLElement): HTMLIonLabelElement | null;
-export declare function renderHiddenInput(always: boolean, container: HTMLElement, name: string, value: string | undefined | null, disabled: boolean): void;
-export declare function clamp(min: number, n: number, max: number): number;
-export declare function assert(actual: any, reason: string): void;
-export declare function now(ev: UIEvent): number;
-export declare function pointerCoord(ev: any): {
+/**
+ * Patched version of requestAnimationFrame that avoids ngzone
+ * Use only when you know ngzone should not run
+ */
+export declare const raf: (h: any) => any;
+export declare const hasShadowDom: (el: HTMLElement) => boolean;
+export declare const findItemLabel: (componentEl: HTMLElement) => HTMLIonLabelElement | null;
+export declare const renderHiddenInput: (always: boolean, container: HTMLElement, name: string, value: string | null | undefined, disabled: boolean) => void;
+export declare const clamp: (min: number, n: number, max: number) => number;
+export declare const assert: (actual: any, reason: string) => void;
+export declare const now: (ev: UIEvent) => number;
+export declare const pointerCoord: (ev: any) => {
     x: number;
     y: number;
 };
@@ -18,7 +22,7 @@ export declare function pointerCoord(ev: any): {
  * @param side the side
  * @param isRTL whether the application dir is rtl
  */
-export declare function isEndSide(win: Window, side: Side): boolean;
-export declare function deferEvent(event: EventEmitter): EventEmitter;
-export declare function debounceEvent(event: EventEmitter, wait: number): EventEmitter;
-export declare function debounce(func: (...args: any[]) => void, wait?: number): (...args: any[]) => any;
+export declare const isEndSide: (side: Side) => boolean;
+export declare const deferEvent: (event: EventEmitter<any>) => EventEmitter<any>;
+export declare const debounceEvent: (event: EventEmitter<any>, wait: number) => EventEmitter<any>;
+export declare const debounce: (func: (...args: any[]) => void, wait?: number) => (...args: any[]) => any;

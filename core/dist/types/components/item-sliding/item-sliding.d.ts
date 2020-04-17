@@ -1,4 +1,5 @@
-import { ComponentInterface, EventEmitter, QueueApi } from '../../stencil.core';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { Side } from '../../interface';
 declare const enum SlidingState {
     Disabled = 2,
     Enabled = 4,
@@ -21,9 +22,8 @@ export declare class ItemSliding implements ComponentInterface {
     private gesture?;
     el: HTMLIonItemSlidingElement;
     state: SlidingState;
-    queue: QueueApi;
     /**
-     * If `true`, the user cannot interact with the sliding-item.
+     * If `true`, the user cannot interact with the sliding item.
      */
     disabled: boolean;
     disabledChanged(): void;
@@ -31,8 +31,8 @@ export declare class ItemSliding implements ComponentInterface {
      * Emitted when the sliding position changes.
      */
     ionDrag: EventEmitter;
-    componentDidLoad(): Promise<void>;
-    componentDidUnload(): void;
+    connectedCallback(): Promise<void>;
+    disconnectedCallback(): void;
     /**
      * Get the amount the item is open in pixels.
      */
@@ -46,13 +46,26 @@ export declare class ItemSliding implements ComponentInterface {
      */
     getSlidingRatio(): Promise<number>;
     /**
-     * Close the sliding item. Items can also be closed from the [List](../../list/List).
+     * Open the sliding item.
+     *
+     * @param side The side of the options to open. If a side is not provided, it will open the first set of options it finds within the item.
+     */
+    open(side: Side | undefined): Promise<void>;
+    /**
+     * Close the sliding item. Items can also be closed from the [List](../list).
      */
     close(): Promise<void>;
     /**
-     * Close all of the sliding items in the list. Items can also be closed from the [List](../../list/List).
+     * Close all of the sliding items in the list. Items can also be closed from the [List](../list).
      */
     closeOpened(): Promise<boolean>;
+    /**
+     * Given an optional side, return the ion-item-options element.
+     *
+     * @param side This side of the options to get. If a side is not provided it will
+     * return the first one available.
+     */
+    private getOptions;
     private updateOptions;
     private canStart;
     private onStart;
@@ -61,14 +74,6 @@ export declare class ItemSliding implements ComponentInterface {
     private calculateOptsWidth;
     private setOpenAmount;
     private getSlidingRatioSync;
-    hostData(): {
-        class: {
-            'item-sliding-active-slide': boolean;
-            'item-sliding-active-options-end': boolean;
-            'item-sliding-active-options-start': boolean;
-            'item-sliding-active-swipe-end': boolean;
-            'item-sliding-active-swipe-start': boolean;
-        };
-    };
+    render(): any;
 }
 export {};

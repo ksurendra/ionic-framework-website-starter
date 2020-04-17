@@ -1,5 +1,5 @@
-export declare function createPointerEvents(el: Node, pointerDown: any, pointerMove: any, pointerUp: any, options: EventListenerOptions): {
-    setDisabled: (disabled: boolean) => void;
+export declare const createPointerEvents: (el: Node, pointerDown: any, pointerMove: any, pointerUp: any, options: EventListenerOptions) => {
+    enable: (isEnabled?: boolean) => void;
     stop: () => void;
     destroy: () => void;
 };

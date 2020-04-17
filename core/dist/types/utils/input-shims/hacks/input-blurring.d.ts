@@ -1,1 +1,1 @@
-export declare function enableInputBlurring(doc: Document): () => void;
+export declare const enableInputBlurring: () => () => void;

@@ -1,10 +1,32 @@
+import { Component, Host, Listen, h } from '@stencil/core';
+import { getIonMode } from '../../global/ionic-global';
 export class Reorder {
+    onClick(ev) {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+    }
     render() {
-        return (h("slot", null,
-            h("ion-icon", { name: "reorder", lazy: false, class: "reorder-icon" })));
+        const mode = getIonMode(this);
+        const reorderIcon = mode === 'ios' ? 'reorder-three-outline' : 'reorder-two-sharp';
+        return (h(Host, { class: mode },
+            h("slot", null,
+                h("ion-icon", { name: reorderIcon, lazy: false, class: "reorder-icon" }))));
     }
     static get is() { return "ion-reorder"; }
     static get encapsulation() { return "shadow"; }
-    static get style() { return "/**style-placeholder:ion-reorder:**/"; }
-    static get styleMode() { return "/**style-id-placeholder:ion-reorder:**/"; }
+    static get originalStyleUrls() { return {
+        "ios": ["reorder.ios.scss"],
+        "md": ["reorder.md.scss"]
+    }; }
+    static get styleUrls() { return {
+        "ios": ["reorder.ios.css"],
+        "md": ["reorder.md.css"]
+    }; }
+    static get listeners() { return [{
+            "name": "click",
+            "method": "onClick",
+            "target": undefined,
+            "capture": true,
+            "passive": false
+        }]; }
 }

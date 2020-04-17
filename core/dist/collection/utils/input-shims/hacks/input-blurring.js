@@ -1,15 +1,16 @@
 const SKIP_SELECTOR = 'input, textarea, [no-blur]';
-export function enableInputBlurring(doc) {
-    console.debug('Input: enableInputBlurring');
+export const enableInputBlurring = () => {
     let focused = true;
     let didScroll = false;
-    function onScroll() {
+    const doc = document;
+    const onScroll = () => {
         didScroll = true;
-    }
-    function onFocusin() {
+    };
+    const onFocusin = () => {
         focused = true;
-    }
-    function onTouchend(ev) {
+    };
+    const onTouchend = (ev) => {
+        // if app did scroll return early
         if (didScroll) {
             didScroll = false;
             return;
@@ -18,9 +19,11 @@ export function enableInputBlurring(doc) {
         if (!active) {
             return;
         }
+        // only blur if the active element is a text-input or a textarea
         if (active.matches(SKIP_SELECTOR)) {
             return;
         }
+        // if the selected target is the active element, do not blur
         const tapped = ev.target;
         if (tapped === active) {
             return;
@@ -29,12 +32,13 @@ export function enableInputBlurring(doc) {
             return;
         }
         focused = false;
+        // TODO: find a better way, why 50ms?
         setTimeout(() => {
             if (!focused) {
                 active.blur();
             }
         }, 50);
-    }
+    };
     doc.addEventListener('ionScrollStart', onScroll);
     doc.addEventListener('focusin', onFocusin, true);
     doc.addEventListener('touchend', onTouchend, false);
@@ -43,4 +47,4 @@ export function enableInputBlurring(doc) {
         doc.removeEventListener('focusin', onFocusin, true);
         doc.removeEventListener('touchend', onTouchend, false);
     };
-}
+};

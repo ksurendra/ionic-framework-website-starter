@@ -1,18 +1,52 @@
+import { Component, Element, Host, Prop, h } from '@stencil/core';
+import { config } from '../../global/config';
+import { getIonMode } from '../../global/ionic-global';
+import { hostContext } from '../../utils/theme';
 export class SkeletonText {
     constructor() {
-        this.width = '100%';
+        /**
+         * If `true`, the skeleton text will animate.
+         */
+        this.animated = false;
     }
     render() {
-        return h("span", { style: { width: this.width } }, "\u00A0");
+        const animated = this.animated && config.getBoolean('animated', true);
+        const inMedia = hostContext('ion-avatar', this.el) || hostContext('ion-thumbnail', this.el);
+        const mode = getIonMode(this);
+        return (h(Host, { class: {
+                [mode]: true,
+                'skeleton-text-animated': animated,
+                'in-media': inMedia
+            } },
+            h("span", null, "\u00A0")));
     }
     static get is() { return "ion-skeleton-text"; }
     static get encapsulation() { return "shadow"; }
+    static get originalStyleUrls() { return {
+        "$": ["skeleton-text.scss"]
+    }; }
+    static get styleUrls() { return {
+        "$": ["skeleton-text.css"]
+    }; }
     static get properties() { return {
-        "width": {
-            "type": String,
-            "attr": "width"
+        "animated": {
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the skeleton text will animate."
+            },
+            "attribute": "animated",
+            "reflect": false,
+            "defaultValue": "false"
         }
     }; }
-    static get style() { return "/**style-placeholder:ion-skeleton-text:**/"; }
-    static get styleMode() { return "/**style-id-placeholder:ion-skeleton-text:**/"; }
+    static get elementRef() { return "el"; }
 }

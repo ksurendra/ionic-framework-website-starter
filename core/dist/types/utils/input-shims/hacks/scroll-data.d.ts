@@ -4,4 +4,4 @@ export interface ScrollData {
     scrollDuration: number;
     inputSafeY: number;
 }
-export declare function getScrollData(componentEl: HTMLElement, contentEl: HTMLElement, keyboardHeight: number): ScrollData;
+export declare const getScrollData: (componentEl: HTMLElement, contentEl: HTMLElement, keyboardHeight: number) => ScrollData;

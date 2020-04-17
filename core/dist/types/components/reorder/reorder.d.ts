@@ -1,7 +1,5 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
-import { Mode } from '../../interface';
+import { ComponentInterface } from '../../stencil-public-runtime';
 export declare class Reorder implements ComponentInterface {
-    mode: Mode;
-    render(): JSX.Element;
+    onClick(ev: Event): void;
+    render(): any;
 }

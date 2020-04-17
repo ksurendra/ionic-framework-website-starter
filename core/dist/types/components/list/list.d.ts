@@ -1,11 +1,9 @@
-import { ComponentInterface } from '../../stencil.core';
-import { Mode } from '../../interface';
+import { ComponentInterface } from '../../stencil-public-runtime';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class List implements ComponentInterface {
     el: HTMLElement;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * How the bottom border should be displayed on all items.
      */
@@ -21,10 +19,5 @@ export declare class List implements ComponentInterface {
      * Returns `true` if an actual `ion-item-sliding` is closed.
      */
     closeSlidingItems(): Promise<boolean>;
-    hostData(): {
-        class: {
-            [x: string]: boolean;
-            'list-inset': boolean;
-        };
-    };
+    render(): any;
 }

@@ -1,63 +1,53 @@
-import { rIC } from '../../utils/helpers';
+import { Build, Component, Element, Host, h } from '@stencil/core';
+import { config } from '../../global/config';
+import { getIonMode } from '../../global/ionic-global';
 import { isPlatform } from '../../utils/platform';
 export class App {
     componentDidLoad() {
-        rIC(() => {
-            const { win, config, queue } = this;
-            if (!config.getBoolean('_testing')) {
-                importTapClick(win, config);
-            }
-            importInputShims(win, config);
-            importStatusTap(win, config, queue);
-            importHardwareBackButton(win, config);
-        });
+        if (Build.isBrowser) {
+            rIC(() => {
+                const isHybrid = isPlatform(window, 'hybrid');
+                if (!config.getBoolean('_testing')) {
+                    import('../../utils/tap-click').then(module => module.startTapClick(config));
+                }
+                if (config.getBoolean('statusTap', isHybrid)) {
+                    import('../../utils/status-tap').then(module => module.startStatusTap());
+                }
+                if (config.getBoolean('inputShims', needInputShims())) {
+                    import('../../utils/input-shims/input-shims').then(module => module.startInputShims(config));
+                }
+                if (config.getBoolean('hardwareBackButton', isHybrid)) {
+                    import('../../utils/hardware-back-button').then(module => module.startHardwareBackButton());
+                }
+                import('../../utils/focus-visible').then(module => module.startFocusVisible());
+            });
+        }
     }
-    hostData() {
-        return {
-            class: {
+    render() {
+        const mode = getIonMode(this);
+        return (h(Host, { class: {
+                [mode]: true,
                 'ion-page': true,
-                'force-statusbar-padding': this.config.getBoolean('_forceStatusbarPadding')
-            }
-        };
+                'force-statusbar-padding': config.getBoolean('_forceStatusbarPadding')
+            } }));
     }
     static get is() { return "ion-app"; }
-    static get properties() { return {
-        "config": {
-            "context": "config"
-        },
-        "el": {
-            "elementRef": true
-        },
-        "queue": {
-            "context": "queue"
-        },
-        "win": {
-            "context": "window"
-        }
+    static get originalStyleUrls() { return {
+        "$": ["app.scss"]
     }; }
-    static get style() { return "/**style-placeholder:ion-app:**/"; }
+    static get styleUrls() { return {
+        "$": ["app.css"]
+    }; }
+    static get elementRef() { return "el"; }
 }
-function importHardwareBackButton(win, config) {
-    const hardwareBackConfig = config.getBoolean('hardwareBackButton', isPlatform(win, 'hybrid'));
-    if (hardwareBackConfig) {
-        import('../../utils/hardware-back-button').then(module => module.startHardwareBackButton(win));
+const needInputShims = () => {
+    return isPlatform(window, 'ios') && isPlatform(window, 'mobile');
+};
+const rIC = (callback) => {
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(callback);
     }
-}
-function importStatusTap(win, config, queue) {
-    const statusTap = config.getBoolean('statusTap', isPlatform(win, 'hybrid'));
-    if (statusTap) {
-        import('../../utils/status-tap').then(module => module.startStatusTap(win, queue));
+    else {
+        setTimeout(callback, 32);
     }
-}
-function importTapClick(win, config) {
-    import('../../utils/tap-click').then(module => module.startTapClick(win.document, config));
-}
-function importInputShims(win, config) {
-    const inputShims = config.getBoolean('inputShims', needInputShims(win));
-    if (inputShims) {
-        import('../../utils/input-shims/input-shims').then(module => module.startInputShims(win.document, config));
-    }
-}
-function needInputShims(win) {
-    return isPlatform(win, 'ios') && isPlatform(win, 'mobile');
-}
+};

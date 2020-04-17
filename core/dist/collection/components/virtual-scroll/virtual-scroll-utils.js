@@ -1,10 +1,12 @@
 import { CELL_TYPE_FOOTER, CELL_TYPE_HEADER, CELL_TYPE_ITEM, NODE_CHANGE_CELL, NODE_CHANGE_NONE, NODE_CHANGE_POSITION } from './constants';
 const MIN_READS = 2;
-export function updateVDom(dom, heightIndex, cells, range) {
+export const updateVDom = (dom, heightIndex, cells, range) => {
+    // reset dom
     for (const node of dom) {
         node.change = NODE_CHANGE_NONE;
         node.d = true;
     }
+    // try to match into exisiting dom
     const toMutate = [];
     const end = range.offset + range.length;
     for (let i = range.offset; i < end; i++) {
@@ -22,10 +24,11 @@ export function updateVDom(dom, heightIndex, cells, range) {
             toMutate.push(cell);
         }
     }
+    // needs to append
     const pool = dom.filter(n => n.d);
     for (const cell of toMutate) {
         const node = pool.find(n => n.d && n.cell.type === cell.type);
-        const index = cell.index;
+        const index = cell.i;
         if (node) {
             node.d = false;
             node.change = NODE_CHANGE_CELL;
@@ -48,14 +51,15 @@ export function updateVDom(dom, heightIndex, cells, range) {
         n.change = NODE_CHANGE_POSITION;
         n.top = -9999;
     });
-}
-export function doRender(el, nodeRender, dom, updateCellHeight) {
+};
+export const doRender = (el, nodeRender, dom, updateCellHeight) => {
     const children = Array.from(el.children).filter(n => n.tagName !== 'TEMPLATE');
     const childrenNu = children.length;
     let child;
     for (let i = 0; i < dom.length; i++) {
         const node = dom[i];
         const cell = node.cell;
+        // the cell change, the content must be updated
         if (node.change === NODE_CHANGE_CELL) {
             if (i < childrenNu) {
                 child = children[i];
@@ -72,9 +76,11 @@ export function doRender(el, nodeRender, dom, updateCellHeight) {
         else {
             child = children[i];
         }
+        // only update position when it changes
         if (node.change !== NODE_CHANGE_NONE) {
             child.style.transform = `translate3d(0,${node.top}px,0)`;
         }
+        // update visibility
         const visible = cell.visible;
         if (node.visible !== visible) {
             if (visible) {
@@ -85,35 +91,37 @@ export function doRender(el, nodeRender, dom, updateCellHeight) {
             }
             node.visible = visible;
         }
+        // dynamic height
         if (cell.reads > 0) {
             updateCellHeight(cell, child);
             cell.reads--;
         }
     }
-}
-function createNode(el, type) {
+};
+const createNode = (el, type) => {
     const template = getTemplate(el, type);
     if (template && el.ownerDocument) {
         return el.ownerDocument.importNode(template.content, true).children[0];
     }
     return null;
-}
-function getTemplate(el, type) {
+};
+const getTemplate = (el, type) => {
     switch (type) {
         case CELL_TYPE_ITEM: return el.querySelector('template:not([name])');
         case CELL_TYPE_HEADER: return el.querySelector('template[name=header]');
         case CELL_TYPE_FOOTER: return el.querySelector('template[name=footer]');
     }
-}
-export function getViewport(scrollTop, vierportHeight, margin) {
+};
+export const getViewport = (scrollTop, vierportHeight, margin) => {
     return {
         top: Math.max(scrollTop - margin, 0),
         bottom: scrollTop + vierportHeight + margin
     };
-}
-export function getRange(heightIndex, viewport, buffer) {
+};
+export const getRange = (heightIndex, viewport, buffer) => {
     const topPos = viewport.top;
     const bottomPos = viewport.bottom;
+    // find top index
     let i = 0;
     for (; i < heightIndex.length; i++) {
         if (heightIndex[i] > topPos) {
@@ -121,6 +129,7 @@ export function getRange(heightIndex, viewport, buffer) {
         }
     }
     const offset = Math.max(i - buffer - 1, 0);
+    // find bottom index
     for (; i < heightIndex.length; i++) {
         if (heightIndex[i] >= bottomPos) {
             break;
@@ -129,15 +138,15 @@ export function getRange(heightIndex, viewport, buffer) {
     const end = Math.min(i + buffer, heightIndex.length);
     const length = end - offset;
     return { offset, length };
-}
-export function getShouldUpdate(dirtyIndex, currentRange, range) {
+};
+export const getShouldUpdate = (dirtyIndex, currentRange, range) => {
     const end = range.offset + range.length;
     return (dirtyIndex <= end ||
         currentRange.offset !== range.offset ||
         currentRange.length !== range.length);
-}
-export function findCellIndex(cells, index) {
-    const max = cells[cells.length - 1].index || 0;
+};
+export const findCellIndex = (cells, index) => {
+    const max = cells.length > 0 ? cells[cells.length - 1].index : 0;
     if (index === 0) {
         return 0;
     }
@@ -147,8 +156,8 @@ export function findCellIndex(cells, index) {
     else {
         return cells.findIndex(c => c.index === index);
     }
-}
-export function inplaceUpdate(dst, src, offset) {
+};
+export const inplaceUpdate = (dst, src, offset) => {
     if (offset === 0 && src.length >= dst.length) {
         return src;
     }
@@ -156,8 +165,8 @@ export function inplaceUpdate(dst, src, offset) {
         dst[i + offset] = src[i];
     }
     return dst;
-}
-export function calcCells(items, itemHeight, headerFn, footerFn, approxHeaderHeight, approxFooterHeight, approxItemHeight, j, offset, len) {
+};
+export const calcCells = (items, itemHeight, headerHeight, footerHeight, headerFn, footerFn, approxHeaderHeight, approxFooterHeight, approxItemHeight, j, offset, len) => {
     const cells = [];
     const end = len + offset;
     for (let i = offset; i < end; i++) {
@@ -170,9 +179,9 @@ export function calcCells(items, itemHeight, headerFn, footerFn, approxHeaderHei
                     type: CELL_TYPE_HEADER,
                     value,
                     index: i,
-                    height: approxHeaderHeight,
-                    reads: MIN_READS,
-                    visible: false,
+                    height: headerHeight ? headerHeight(value, i) : approxHeaderHeight,
+                    reads: headerHeight ? 0 : MIN_READS,
+                    visible: !!headerHeight,
                 });
             }
         }
@@ -193,24 +202,24 @@ export function calcCells(items, itemHeight, headerFn, footerFn, approxHeaderHei
                     type: CELL_TYPE_FOOTER,
                     value,
                     index: i,
-                    height: approxFooterHeight,
-                    reads: 2,
-                    visible: false,
+                    height: footerHeight ? footerHeight(value, i) : approxFooterHeight,
+                    reads: footerHeight ? 0 : MIN_READS,
+                    visible: !!footerHeight,
                 });
             }
         }
     }
     return cells;
-}
-export function calcHeightIndex(buf, cells, index) {
+};
+export const calcHeightIndex = (buf, cells, index) => {
     let acum = buf[index];
     for (let i = index; i < buf.length; i++) {
         buf[i] = acum;
         acum += cells[i].height;
     }
     return acum;
-}
-export function resizeBuffer(buf, len) {
+};
+export const resizeBuffer = (buf, len) => {
     if (!buf) {
         return new Uint32Array(len);
     }
@@ -225,11 +234,11 @@ export function resizeBuffer(buf, len) {
     else {
         return buf.subarray(0, len);
     }
-}
-export function positionForIndex(index, cells, heightIndex) {
+};
+export const positionForIndex = (index, cells, heightIndex) => {
     const cell = cells.find(c => c.type === CELL_TYPE_ITEM && c.index === index);
     if (cell) {
         return heightIndex[cell.i];
     }
     return -1;
-}
+};

@@ -1,11 +1,11 @@
 import { ROUTER_INTENT_FORWARD } from './constants';
-export function generatePath(segments) {
+export const generatePath = (segments) => {
     const path = segments
         .filter(s => s.length > 0)
         .join('/');
     return '/' + path;
-}
-export function chainToPath(chain) {
+};
+export const chainToPath = (chain) => {
     const path = [];
     for (const route of chain) {
         for (const segment of route.path) {
@@ -22,8 +22,8 @@ export function chainToPath(chain) {
         }
     }
     return path;
-}
-export function writePath(history, root, useHash, path, direction, state) {
+};
+export const writePath = (history, root, useHash, path, direction, state) => {
     let url = generatePath([
         ...parsePath(root),
         ...path
@@ -37,8 +37,8 @@ export function writePath(history, root, useHash, path, direction, state) {
     else {
         history.replaceState(state, '', url);
     }
-}
-export function removePrefix(prefix, path) {
+};
+export const removePrefix = (prefix, path) => {
     if (prefix.length > path.length) {
         return null;
     }
@@ -54,8 +54,8 @@ export function removePrefix(prefix, path) {
         return [''];
     }
     return path.slice(prefix.length);
-}
-export function readPath(loc, root, useHash) {
+};
+export const readPath = (loc, root, useHash) => {
     let pathname = loc.pathname;
     if (useHash) {
         const hash = loc.hash;
@@ -66,8 +66,8 @@ export function readPath(loc, root, useHash) {
     const prefix = parsePath(root);
     const path = parsePath(pathname);
     return removePrefix(prefix, path);
-}
-export function parsePath(path) {
+};
+export const parsePath = (path) => {
     if (path == null) {
         return [''];
     }
@@ -80,4 +80,4 @@ export function parsePath(path) {
     else {
         return segments;
     }
-}
+};

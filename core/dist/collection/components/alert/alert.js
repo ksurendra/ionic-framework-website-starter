@@ -1,20 +1,57 @@
-import { BACKDROP, dismiss, eventMethod, isCancel, present } from '../../utils/overlays';
+import { Component, Element, Event, Host, Method, Prop, Watch, forceUpdate, h } from '@stencil/core';
+import { getIonMode } from '../../global/ionic-global';
+import { BACKDROP, dismiss, eventMethod, isCancel, prepareOverlay, present, safeCall } from '../../utils/overlays';
+import { sanitizeDOMString } from '../../utils/sanitization';
 import { getClassMap } from '../../utils/theme';
 import { iosEnterAnimation } from './animations/ios.enter';
 import { iosLeaveAnimation } from './animations/ios.leave';
 import { mdEnterAnimation } from './animations/md.enter';
 import { mdLeaveAnimation } from './animations/md.leave';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export class Alert {
     constructor() {
         this.processedInputs = [];
         this.processedButtons = [];
         this.presented = false;
+        /**
+         * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
+         */
         this.keyboardClose = true;
+        /**
+         * Array of buttons to be added to the alert.
+         */
         this.buttons = [];
+        /**
+         * Array of input to show in the alert.
+         */
         this.inputs = [];
+        /**
+         * If `true`, the alert will be dismissed when the backdrop is clicked.
+         */
         this.backdropDismiss = true;
+        /**
+         * If `true`, the alert will be translucent.
+         * Only applies when the mode is `"ios"` and the device supports
+         * [`backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter#Browser_compatibility).
+         */
         this.translucent = false;
+        /**
+         * If `true`, the alert will animate.
+         */
         this.animated = true;
+        this.onBackdropTap = () => {
+            this.dismiss(undefined, BACKDROP);
+        };
+        this.dispatchCancelHandler = (ev) => {
+            const role = ev.detail.role;
+            if (isCancel(role)) {
+                const cancelButton = this.processedButtons.find(b => b.role === 'cancel');
+                this.callButtonHandler(cancelButton);
+            }
+        };
+        prepareOverlay(this.el);
     }
     buttonsChanged() {
         const buttons = this.buttons;
@@ -26,6 +63,8 @@ export class Alert {
     }
     inputsChanged() {
         const inputs = this.inputs;
+        // An alert can be created with several different inputs. Radios,
+        // checkboxes and inputs are all accepted, but they cannot be mixed.
         const inputTypes = new Set(inputs.map(i => i.type));
         if (inputTypes.has('checkbox') && inputTypes.has('radio')) {
             console.warn(`Alert cannot mix input types: ${(Array.from(inputTypes.values()).join('/'))}. Please see alert docs for more info.`);
@@ -49,25 +88,33 @@ export class Alert {
         this.inputsChanged();
         this.buttonsChanged();
     }
-    onBackdropTap() {
-        this.dismiss(undefined, BACKDROP);
-    }
-    dispatchCancelHandler(ev) {
-        const role = ev.detail.role;
-        if (isCancel(role)) {
-            const cancelButton = this.processedButtons.find(b => b.role === 'cancel');
-            this.callButtonHandler(cancelButton);
-        }
-    }
+    /**
+     * Present the alert overlay after it has been created.
+     */
     present() {
         return present(this, 'alertEnter', iosEnterAnimation, mdEnterAnimation);
     }
+    /**
+     * Dismiss the alert overlay after it has been presented.
+     *
+     * @param data Any data to emit in the dismiss events.
+     * @param role The role of the element that is dismissing the alert.
+     * This can be useful in a button handler for determining which button was
+     * clicked to dismiss the alert.
+     * Some examples include: ``"cancel"`, `"destructive"`, "selected"`, and `"backdrop"`.
+     */
     dismiss(data, role) {
         return dismiss(this, data, role, 'alertLeave', iosLeaveAnimation, mdLeaveAnimation);
     }
+    /**
+     * Returns a promise that resolves when the alert did dismiss.
+     */
     onDidDismiss() {
         return eventMethod(this.el, 'ionAlertDidDismiss');
     }
+    /**
+     * Returns a promise that resolves when the alert will dismiss.
+     */
     onWillDismiss() {
         return eventMethod(this.el, 'ionAlertWillDismiss');
     }
@@ -76,17 +123,13 @@ export class Alert {
             input.checked = input === selectedInput;
         }
         this.activeId = selectedInput.id;
-        if (selectedInput.handler) {
-            selectedInput.handler(selectedInput);
-        }
-        this.el.forceUpdate();
+        safeCall(selectedInput.handler, selectedInput);
+        forceUpdate(this);
     }
     cbClick(selectedInput) {
         selectedInput.checked = !selectedInput.checked;
-        if (selectedInput.handler) {
-            selectedInput.handler(selectedInput);
-        }
-        this.el.forceUpdate();
+        safeCall(selectedInput.handler, selectedInput);
+        forceUpdate(this);
     }
     buttonClick(button) {
         const role = button.role;
@@ -102,8 +145,11 @@ export class Alert {
     }
     callButtonHandler(button, data) {
         if (button && button.handler) {
-            const returnData = button.handler(data);
+            // a handler has been provided, execute it
+            // pass the handler the values from the inputs
+            const returnData = safeCall(button.handler, data);
             if (returnData === false) {
+                // if the return value of the handler is false then do not dismiss
                 return false;
             }
             if (typeof returnData === 'object') {
@@ -114,15 +160,22 @@ export class Alert {
     }
     getValues() {
         if (this.processedInputs.length === 0) {
+            // this is an alert without any options/inputs at all
             return undefined;
         }
         if (this.inputType === 'radio') {
+            // this is an alert with radio buttons (single value select)
+            // return the one value which is checked, otherwise undefined
             const checkedInput = this.processedInputs.find(i => !!i.checked);
             return checkedInput ? checkedInput.value : undefined;
         }
         if (this.inputType === 'checkbox') {
+            // this is an alert with checkboxes (multiple value select)
+            // return an array of all the checked values
             return this.processedInputs.filter(i => i.checked).map(i => i.value);
         }
+        // this is an alert with text inputs
+        // return an object of all the values with the input name as the key
         const values = {};
         this.processedInputs.forEach(i => {
             values[i.name] = i.value || '';
@@ -138,22 +191,35 @@ export class Alert {
     }
     renderCheckbox(labelledby) {
         const inputs = this.processedInputs;
+        const mode = getIonMode(this);
         if (inputs.length === 0) {
             return null;
         }
-        return (h("div", { class: "alert-checkbox-group", "aria-labelledby": labelledby }, inputs.map(i => (h("button", { type: "button", onClick: () => this.cbClick(i), "aria-checked": `${i.checked}`, id: i.id, disabled: i.disabled, tabIndex: 0, role: "checkbox", class: "alert-tappable alert-checkbox alert-checkbox-button" },
+        return (h("div", { class: "alert-checkbox-group", "aria-labelledby": labelledby }, inputs.map(i => (h("button", { type: "button", onClick: () => this.cbClick(i), "aria-checked": `${i.checked}`, id: i.id, disabled: i.disabled, tabIndex: 0, role: "checkbox", class: {
+                'alert-tappable': true,
+                'alert-checkbox': true,
+                'alert-checkbox-button': true,
+                'ion-focusable': true,
+                'alert-checkbox-button-disabled': i.disabled || false
+            } },
             h("div", { class: "alert-button-inner" },
                 h("div", { class: "alert-checkbox-icon" },
                     h("div", { class: "alert-checkbox-inner" })),
                 h("div", { class: "alert-checkbox-label" }, i.label)),
-            this.mode === 'md' && h("ion-ripple-effect", null))))));
+            mode === 'md' && h("ion-ripple-effect", null))))));
     }
     renderRadio(labelledby) {
         const inputs = this.processedInputs;
         if (inputs.length === 0) {
             return null;
         }
-        return (h("div", { class: "alert-radio-group", role: "radiogroup", "aria-labelledby": labelledby, "aria-activedescendant": this.activeId }, inputs.map(i => (h("button", { type: "button", onClick: () => this.rbClick(i), "aria-checked": `${i.checked}`, disabled: i.disabled, id: i.id, tabIndex: 0, class: "alert-radio-button alert-tappable alert-radio", role: "radio" },
+        return (h("div", { class: "alert-radio-group", role: "radiogroup", "aria-labelledby": labelledby, "aria-activedescendant": this.activeId }, inputs.map(i => (h("button", { type: "button", onClick: () => this.rbClick(i), "aria-checked": `${i.checked}`, disabled: i.disabled, id: i.id, tabIndex: 0, class: {
+                'alert-radio-button': true,
+                'alert-tappable': true,
+                'alert-radio': true,
+                'ion-focusable': true,
+                'alert-radio-button-disabled': i.disabled || false
+            }, role: "radio" },
             h("div", { class: "alert-button-inner" },
                 h("div", { class: "alert-radio-icon" },
                     h("div", { class: "alert-radio-inner" })),
@@ -164,166 +230,485 @@ export class Alert {
         if (inputs.length === 0) {
             return null;
         }
-        return (h("div", { class: "alert-input-group", "aria-labelledby": labelledby }, inputs.map(i => (h("div", { class: "alert-input-wrapper" },
-            h("input", { placeholder: i.placeholder, value: i.value, type: i.type, min: i.min, max: i.max, onInput: e => i.value = e.target.value, id: i.id, disabled: i.disabled, tabIndex: 0, class: "alert-input" }))))));
-    }
-    hostData() {
-        return {
-            role: 'alertdialog',
-            style: {
-                zIndex: 20000 + this.overlayIndex,
-            },
-            class: Object.assign({}, getClassMap(this.cssClass), { 'alert-translucent': this.translucent })
-        };
+        return (h("div", { class: "alert-input-group", "aria-labelledby": labelledby }, inputs.map(i => {
+            if (i.type === 'textarea') {
+                return (h("div", { class: "alert-input-wrapper" },
+                    h("textarea", { placeholder: i.placeholder, value: i.value, onInput: e => i.value = e.target.value, id: i.id, disabled: i.disabled, tabIndex: 0, class: {
+                            'alert-input': true,
+                            'alert-input-disabled': i.disabled || false
+                        } })));
+            }
+            else {
+                return (h("div", { class: "alert-input-wrapper" },
+                    h("input", { placeholder: i.placeholder, value: i.value, type: i.type, min: i.min, max: i.max, onInput: e => i.value = e.target.value, id: i.id, disabled: i.disabled, tabIndex: 0, class: {
+                            'alert-input': true,
+                            'alert-input-disabled': i.disabled || false
+                        } })));
+            }
+        })));
     }
     renderAlertButtons() {
         const buttons = this.processedButtons;
+        const mode = getIonMode(this);
         const alertButtonGroupClass = {
             'alert-button-group': true,
             'alert-button-group-vertical': buttons.length > 2
         };
         return (h("div", { class: alertButtonGroupClass }, buttons.map(button => h("button", { type: "button", class: buttonClass(button), tabIndex: 0, onClick: () => this.buttonClick(button) },
             h("span", { class: "alert-button-inner" }, button.text),
-            this.mode === 'md' && h("ion-ripple-effect", null)))));
+            mode === 'md' && h("ion-ripple-effect", null)))));
     }
     render() {
-        const hdrId = `alert-${this.overlayIndex}-hdr`;
-        const subHdrId = `alert-${this.overlayIndex}-sub-hdr`;
-        const msgId = `alert-${this.overlayIndex}-msg`;
+        const { overlayIndex, header, subHeader } = this;
+        const mode = getIonMode(this);
+        const hdrId = `alert-${overlayIndex}-hdr`;
+        const subHdrId = `alert-${overlayIndex}-sub-hdr`;
+        const msgId = `alert-${overlayIndex}-msg`;
         let labelledById;
-        if (this.header !== undefined) {
+        if (header !== undefined) {
             labelledById = hdrId;
         }
-        else if (this.subHeader !== undefined) {
+        else if (subHeader !== undefined) {
             labelledById = subHdrId;
         }
-        return [
+        return (h(Host, { role: "dialog", "aria-modal": "true", style: {
+                zIndex: `${20000 + overlayIndex}`,
+            }, class: Object.assign(Object.assign({}, getClassMap(this.cssClass)), { [mode]: true, 'alert-translucent': this.translucent }), onIonAlertWillDismiss: this.dispatchCancelHandler, onIonBackdropTap: this.onBackdropTap },
             h("ion-backdrop", { tappable: this.backdropDismiss }),
             h("div", { class: "alert-wrapper" },
                 h("div", { class: "alert-head" },
-                    this.header && h("h2", { id: hdrId, class: "alert-title" }, this.header),
-                    this.subHeader && h("h2", { id: subHdrId, class: "alert-sub-title" }, this.subHeader)),
-                h("div", { id: msgId, class: "alert-message", innerHTML: this.message }),
+                    header && h("h2", { id: hdrId, class: "alert-title" }, header),
+                    subHeader && h("h2", { id: subHdrId, class: "alert-sub-title" }, subHeader)),
+                h("div", { id: msgId, class: "alert-message", innerHTML: sanitizeDOMString(this.message) }),
                 this.renderAlertInputs(labelledById),
-                this.renderAlertButtons())
-        ];
+                this.renderAlertButtons())));
     }
     static get is() { return "ion-alert"; }
     static get encapsulation() { return "scoped"; }
+    static get originalStyleUrls() { return {
+        "ios": ["alert.ios.scss"],
+        "md": ["alert.md.scss"]
+    }; }
+    static get styleUrls() { return {
+        "ios": ["alert.ios.css"],
+        "md": ["alert.md.css"]
+    }; }
     static get properties() { return {
-        "animated": {
-            "type": Boolean,
-            "attr": "animated"
-        },
-        "backdropDismiss": {
-            "type": Boolean,
-            "attr": "backdrop-dismiss"
-        },
-        "buttons": {
-            "type": "Any",
-            "attr": "buttons",
-            "watchCallbacks": ["buttonsChanged"]
-        },
-        "config": {
-            "context": "config"
-        },
-        "cssClass": {
-            "type": String,
-            "attr": "css-class"
-        },
-        "dismiss": {
-            "method": true
-        },
-        "el": {
-            "elementRef": true
-        },
-        "enterAnimation": {
-            "type": "Any",
-            "attr": "enter-animation"
-        },
-        "header": {
-            "type": String,
-            "attr": "header"
-        },
-        "inputs": {
-            "type": "Any",
-            "attr": "inputs",
-            "mutable": true,
-            "watchCallbacks": ["inputsChanged"]
+        "overlayIndex": {
+            "type": "number",
+            "mutable": false,
+            "complexType": {
+                "original": "number",
+                "resolved": "number",
+                "references": {}
+            },
+            "required": true,
+            "optional": false,
+            "docs": {
+                "tags": [{
+                        "text": undefined,
+                        "name": "internal"
+                    }],
+                "text": ""
+            },
+            "attribute": "overlay-index",
+            "reflect": false
         },
         "keyboardClose": {
-            "type": Boolean,
-            "attr": "keyboard-close"
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the keyboard will be automatically dismissed when the overlay is presented."
+            },
+            "attribute": "keyboard-close",
+            "reflect": false,
+            "defaultValue": "true"
+        },
+        "enterAnimation": {
+            "type": "unknown",
+            "mutable": false,
+            "complexType": {
+                "original": "AnimationBuilder",
+                "resolved": "((baseEl: any, opts?: any) => Animation) | undefined",
+                "references": {
+                    "AnimationBuilder": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "Animation to use when the alert is presented."
+            }
         },
         "leaveAnimation": {
-            "type": "Any",
-            "attr": "leave-animation"
+            "type": "unknown",
+            "mutable": false,
+            "complexType": {
+                "original": "AnimationBuilder",
+                "resolved": "((baseEl: any, opts?: any) => Animation) | undefined",
+                "references": {
+                    "AnimationBuilder": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "Animation to use when the alert is dismissed."
+            }
         },
-        "message": {
-            "type": String,
-            "attr": "message"
+        "cssClass": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string | string[]",
+                "resolved": "string | string[] | undefined",
+                "references": {}
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "Additional classes to apply for custom CSS. If multiple classes are\nprovided they should be separated by spaces."
+            },
+            "attribute": "css-class",
+            "reflect": false
         },
-        "mode": {
-            "type": String,
-            "attr": "mode"
-        },
-        "onDidDismiss": {
-            "method": true
-        },
-        "onWillDismiss": {
-            "method": true
-        },
-        "overlayIndex": {
-            "type": Number,
-            "attr": "overlay-index"
-        },
-        "present": {
-            "method": true
+        "header": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string | undefined",
+                "references": {}
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "The main title in the heading of the alert."
+            },
+            "attribute": "header",
+            "reflect": false
         },
         "subHeader": {
-            "type": String,
-            "attr": "sub-header"
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string | undefined",
+                "references": {}
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "The subtitle in the heading of the alert. Displayed under the title."
+            },
+            "attribute": "sub-header",
+            "reflect": false
+        },
+        "message": {
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string | undefined",
+                "references": {}
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "The main message to be displayed in the alert.\n`message` can accept either plaintext or HTML as a string.\nTo display characters normally reserved for HTML, they\nmust be escaped. For example `<Ionic>` would become\n`&lt;Ionic&gt;`\n\nFor more information: [Security Documentation](https://ionicframework.com/docs/faq/security)"
+            },
+            "attribute": "message",
+            "reflect": false
+        },
+        "buttons": {
+            "type": "unknown",
+            "mutable": false,
+            "complexType": {
+                "original": "(AlertButton | string)[]",
+                "resolved": "(string | AlertButton)[]",
+                "references": {
+                    "AlertButton": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "Array of buttons to be added to the alert."
+            },
+            "defaultValue": "[]"
+        },
+        "inputs": {
+            "type": "unknown",
+            "mutable": true,
+            "complexType": {
+                "original": "AlertInput[]",
+                "resolved": "AlertInput[]",
+                "references": {
+                    "AlertInput": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "Array of input to show in the alert."
+            },
+            "defaultValue": "[]"
+        },
+        "backdropDismiss": {
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the alert will be dismissed when the backdrop is clicked."
+            },
+            "attribute": "backdrop-dismiss",
+            "reflect": false,
+            "defaultValue": "true"
         },
         "translucent": {
-            "type": Boolean,
-            "attr": "translucent"
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the alert will be translucent.\nOnly applies when the mode is `\"ios\"` and the device supports\n[`backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter#Browser_compatibility)."
+            },
+            "attribute": "translucent",
+            "reflect": false,
+            "defaultValue": "false"
+        },
+        "animated": {
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the alert will animate."
+            },
+            "attribute": "animated",
+            "reflect": false,
+            "defaultValue": "true"
         }
     }; }
     static get events() { return [{
-            "name": "ionAlertDidPresent",
             "method": "didPresent",
+            "name": "ionAlertDidPresent",
             "bubbles": true,
             "cancelable": true,
-            "composed": true
+            "composed": true,
+            "docs": {
+                "tags": [],
+                "text": "Emitted after the alert has presented."
+            },
+            "complexType": {
+                "original": "void",
+                "resolved": "void",
+                "references": {}
+            }
         }, {
-            "name": "ionAlertWillPresent",
             "method": "willPresent",
+            "name": "ionAlertWillPresent",
             "bubbles": true,
             "cancelable": true,
-            "composed": true
+            "composed": true,
+            "docs": {
+                "tags": [],
+                "text": "Emitted before the alert has presented."
+            },
+            "complexType": {
+                "original": "void",
+                "resolved": "void",
+                "references": {}
+            }
         }, {
-            "name": "ionAlertWillDismiss",
             "method": "willDismiss",
-            "bubbles": true,
-            "cancelable": true,
-            "composed": true
-        }, {
-            "name": "ionAlertDidDismiss",
-            "method": "didDismiss",
-            "bubbles": true,
-            "cancelable": true,
-            "composed": true
-        }]; }
-    static get listeners() { return [{
-            "name": "ionBackdropTap",
-            "method": "onBackdropTap"
-        }, {
             "name": "ionAlertWillDismiss",
-            "method": "dispatchCancelHandler"
+            "bubbles": true,
+            "cancelable": true,
+            "composed": true,
+            "docs": {
+                "tags": [],
+                "text": "Emitted before the alert has dismissed."
+            },
+            "complexType": {
+                "original": "OverlayEventDetail",
+                "resolved": "OverlayEventDetail<any>",
+                "references": {
+                    "OverlayEventDetail": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            }
+        }, {
+            "method": "didDismiss",
+            "name": "ionAlertDidDismiss",
+            "bubbles": true,
+            "cancelable": true,
+            "composed": true,
+            "docs": {
+                "tags": [],
+                "text": "Emitted after the alert has dismissed."
+            },
+            "complexType": {
+                "original": "OverlayEventDetail",
+                "resolved": "OverlayEventDetail<any>",
+                "references": {
+                    "OverlayEventDetail": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            }
         }]; }
-    static get style() { return "/**style-placeholder:ion-alert:**/"; }
-    static get styleMode() { return "/**style-id-placeholder:ion-alert:**/"; }
+    static get methods() { return {
+        "present": {
+            "complexType": {
+                "signature": "() => Promise<void>",
+                "parameters": [],
+                "references": {
+                    "Promise": {
+                        "location": "global"
+                    }
+                },
+                "return": "Promise<void>"
+            },
+            "docs": {
+                "text": "Present the alert overlay after it has been created.",
+                "tags": []
+            }
+        },
+        "dismiss": {
+            "complexType": {
+                "signature": "(data?: any, role?: string | undefined) => Promise<boolean>",
+                "parameters": [{
+                        "tags": [{
+                                "text": "data Any data to emit in the dismiss events.",
+                                "name": "param"
+                            }],
+                        "text": "Any data to emit in the dismiss events."
+                    }, {
+                        "tags": [{
+                                "text": "role The role of the element that is dismissing the alert.\nThis can be useful in a button handler for determining which button was\nclicked to dismiss the alert.\nSome examples include: ``\"cancel\"`, `\"destructive\"`, \"selected\"`, and `\"backdrop\"`.",
+                                "name": "param"
+                            }],
+                        "text": "The role of the element that is dismissing the alert.\nThis can be useful in a button handler for determining which button was\nclicked to dismiss the alert.\nSome examples include: ``\"cancel\"`, `\"destructive\"`, \"selected\"`, and `\"backdrop\"`."
+                    }],
+                "references": {
+                    "Promise": {
+                        "location": "global"
+                    }
+                },
+                "return": "Promise<boolean>"
+            },
+            "docs": {
+                "text": "Dismiss the alert overlay after it has been presented.",
+                "tags": [{
+                        "name": "param",
+                        "text": "data Any data to emit in the dismiss events."
+                    }, {
+                        "name": "param",
+                        "text": "role The role of the element that is dismissing the alert.\nThis can be useful in a button handler for determining which button was\nclicked to dismiss the alert.\nSome examples include: ``\"cancel\"`, `\"destructive\"`, \"selected\"`, and `\"backdrop\"`."
+                    }]
+            }
+        },
+        "onDidDismiss": {
+            "complexType": {
+                "signature": "() => Promise<OverlayEventDetail<any>>",
+                "parameters": [],
+                "references": {
+                    "Promise": {
+                        "location": "global"
+                    },
+                    "OverlayEventDetail": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                },
+                "return": "Promise<OverlayEventDetail<any>>"
+            },
+            "docs": {
+                "text": "Returns a promise that resolves when the alert did dismiss.",
+                "tags": []
+            }
+        },
+        "onWillDismiss": {
+            "complexType": {
+                "signature": "() => Promise<OverlayEventDetail<any>>",
+                "parameters": [],
+                "references": {
+                    "Promise": {
+                        "location": "global"
+                    },
+                    "OverlayEventDetail": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                },
+                "return": "Promise<OverlayEventDetail<any>>"
+            },
+            "docs": {
+                "text": "Returns a promise that resolves when the alert will dismiss.",
+                "tags": []
+            }
+        }
+    }; }
+    static get elementRef() { return "el"; }
+    static get watchers() { return [{
+            "propName": "buttons",
+            "methodName": "buttonsChanged"
+        }, {
+            "propName": "inputs",
+            "methodName": "inputsChanged"
+        }]; }
 }
-function buttonClass(button) {
-    return Object.assign({ 'alert-button': true, 'ion-activatable': true }, getClassMap(button.cssClass));
-}
+const buttonClass = (button) => {
+    return Object.assign({ 'alert-button': true, 'ion-focusable': true, 'ion-activatable': true }, getClassMap(button.cssClass));
+};

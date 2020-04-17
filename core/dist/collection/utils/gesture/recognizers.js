@@ -1,4 +1,4 @@
-export function createPanRecognizer(direction, thresh, maxAngle) {
+export const createPanRecognizer = (direction, thresh, maxAngle) => {
     const radians = maxAngle * (Math.PI / 180);
     const isDirX = direction === 'x';
     const maxCosine = Math.cos(radians);
@@ -45,4 +45,4 @@ export function createPanRecognizer(direction, thresh, maxAngle) {
             return isPan;
         }
     };
-}
+};

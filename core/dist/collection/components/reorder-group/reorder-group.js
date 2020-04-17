@@ -1,3 +1,5 @@
+import { Component, Element, Event, Host, Method, Prop, State, Watch, h } from '@stencil/core';
+import { getIonMode } from '../../global/ionic-global';
 import { hapticSelectionChanged, hapticSelectionEnd, hapticSelectionStart } from '../../utils/haptic';
 export class ReorderGroup {
     constructor() {
@@ -8,27 +10,26 @@ export class ReorderGroup {
         this.scrollElInitial = 0;
         this.containerTop = 0;
         this.containerBottom = 0;
-        this.state = 0;
+        this.state = 0 /* Idle */;
+        /**
+         * If `true`, the reorder will be hidden.
+         */
         this.disabled = true;
     }
     disabledChanged() {
         if (this.gesture) {
-            this.gesture.setDisabled(this.disabled);
+            this.gesture.enable(!this.disabled);
         }
-        const a = { a: 2 };
-        delete a.a;
     }
-    async componentDidLoad() {
+    async connectedCallback() {
         const contentEl = this.el.closest('ion-content');
         if (contentEl) {
-            await contentEl.componentOnReady();
             this.scrollEl = await contentEl.getScrollElement();
         }
         this.gesture = (await import('../../utils/gesture')).createGesture({
-            el: this.doc.body,
-            queue: this.queue,
+            el: this.el,
             gestureName: 'reorder',
-            gesturePriority: 90,
+            gesturePriority: 110,
             threshold: 0,
             direction: 'y',
             passive: false,
@@ -39,14 +40,31 @@ export class ReorderGroup {
         });
         this.disabledChanged();
     }
-    componentDidUnload() {
+    disconnectedCallback() {
         this.onEnd();
+        if (this.gesture) {
+            this.gesture.destroy();
+            this.gesture = undefined;
+        }
     }
+    /**
+     * Completes the reorder operation. Must be called by the `ionItemReorder` event.
+     *
+     * If a list of items is passed, the list will be reordered and returned in the
+     * proper order.
+     *
+     * If no parameters are passed or if `true` is passed in, the reorder will complete
+     * and the item will remain in the position it was dragged to. If `false` is passed,
+     * the reorder will complete and the item will bounce back to its original position.
+     *
+     * @param listOrReorder A list of items to be sorted and returned in the new order or a
+     * boolean of whether or not the reorder should reposition the item.
+     */
     complete(listOrReorder) {
         return Promise.resolve(this.completeSync(listOrReorder));
     }
     canStart(ev) {
-        if (this.selectedItemEl || this.state !== 0) {
+        if (this.selectedItemEl || this.state !== 0 /* Idle */) {
             return false;
         }
         const target = ev.event.target;
@@ -56,7 +74,6 @@ export class ReorderGroup {
         }
         const item = findReorderItem(reorderEl, this.el);
         if (!item) {
-            console.error('reorder node not found');
             return false;
         }
         ev.data = item;
@@ -95,7 +112,7 @@ export class ReorderGroup {
         }
         this.lastToIndex = indexForItem(item);
         this.selectedItemHeight = item.offsetHeight;
-        this.state = 1;
+        this.state = 1 /* Active */;
         item.classList.add(ITEM_REORDER_SELECTED);
         hapticSelectionStart();
     }
@@ -104,7 +121,9 @@ export class ReorderGroup {
         if (!selectedItem) {
             return;
         }
+        // Scroll if we reach the scroll margins
         const scroll = this.autoscroll(ev.currentY);
+        // // Get coordinate
         const top = this.containerTop - scroll;
         const bottom = this.containerBottom - scroll;
         const currentY = Math.max(top, Math.min(ev.currentY, bottom));
@@ -117,20 +136,20 @@ export class ReorderGroup {
             hapticSelectionChanged();
             this.reorderMove(fromIndex, toIndex);
         }
+        // Update selected item position
         selectedItem.style.transform = `translateY(${deltaY}px)`;
     }
     onEnd() {
-        const selectedItem = this.selectedItemEl;
-        this.state = 2;
-        if (!selectedItem) {
-            this.state = 0;
+        const selectedItemEl = this.selectedItemEl;
+        this.state = 2 /* Complete */;
+        if (!selectedItemEl) {
+            this.state = 0 /* Idle */;
             return;
         }
         const toIndex = this.lastToIndex;
-        const fromIndex = indexForItem(selectedItem);
+        const fromIndex = indexForItem(selectedItemEl);
         if (toIndex === fromIndex) {
-            selectedItem.style.transition = 'transform 200ms ease-in-out';
-            setTimeout(() => this.completeSync(), 200);
+            this.completeSync();
         }
         else {
             this.ionItemReorder.emit({
@@ -143,12 +162,12 @@ export class ReorderGroup {
     }
     completeSync(listOrReorder) {
         const selectedItemEl = this.selectedItemEl;
-        if (selectedItemEl && this.state === 2) {
+        if (selectedItemEl && this.state === 2 /* Complete */) {
             const children = this.el.children;
             const len = children.length;
             const toIndex = this.lastToIndex;
             const fromIndex = indexForItem(selectedItemEl);
-            if (listOrReorder === true) {
+            if (toIndex !== fromIndex && (!listOrReorder || listOrReorder === true)) {
                 const ref = (fromIndex < toIndex)
                     ? children[toIndex + 1]
                     : children[toIndex];
@@ -163,13 +182,16 @@ export class ReorderGroup {
             selectedItemEl.style.transition = '';
             selectedItemEl.classList.remove(ITEM_REORDER_SELECTED);
             this.selectedItemEl = undefined;
-            this.state = 0;
+            this.state = 0 /* Idle */;
         }
         return listOrReorder;
     }
     itemIndexForTop(deltaY) {
         const heights = this.cachedHeights;
         let i = 0;
+        // TODO: since heights is a sorted array of integers, we can do
+        // speed up the search using binary search. Remember that linear-search is still
+        // faster than binary-search for small arrays (<64) due CPU branch misprediction.
         for (i = 0; i < heights.length; i++) {
             if (heights[i] > deltaY) {
                 break;
@@ -177,6 +199,7 @@ export class ReorderGroup {
         }
         return i;
     }
+    /********* DOM WRITE ********* */
     reorderMove(fromIndex, toIndex) {
         const itemHeight = this.selectedItemHeight;
         const children = this.el.children;
@@ -208,68 +231,118 @@ export class ReorderGroup {
         }
         return this.scrollEl.scrollTop - this.scrollElInitial;
     }
-    hostData() {
-        return {
-            class: {
+    render() {
+        const mode = getIonMode(this);
+        return (h(Host, { class: {
+                [mode]: true,
                 'reorder-enabled': !this.disabled,
-                'reorder-list-active': this.state !== 0,
-            }
-        };
+                'reorder-list-active': this.state !== 0 /* Idle */,
+            } }));
     }
     static get is() { return "ion-reorder-group"; }
+    static get originalStyleUrls() { return {
+        "$": ["reorder-group.scss"]
+    }; }
+    static get styleUrls() { return {
+        "$": ["reorder-group.css"]
+    }; }
     static get properties() { return {
-        "complete": {
-            "method": true
-        },
         "disabled": {
-            "type": Boolean,
-            "attr": "disabled",
-            "watchCallbacks": ["disabledChanged"]
-        },
-        "doc": {
-            "context": "document"
-        },
-        "el": {
-            "elementRef": true
-        },
-        "queue": {
-            "context": "queue"
-        },
-        "state": {
-            "state": true
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the reorder will be hidden."
+            },
+            "attribute": "disabled",
+            "reflect": false,
+            "defaultValue": "true"
         }
     }; }
+    static get states() { return {
+        "state": {}
+    }; }
     static get events() { return [{
-            "name": "ionItemReorder",
             "method": "ionItemReorder",
+            "name": "ionItemReorder",
             "bubbles": true,
             "cancelable": true,
-            "composed": true
+            "composed": true,
+            "docs": {
+                "tags": [],
+                "text": "Event that needs to be listened to in order to complete the reorder action.\nOnce the event has been emitted, the `complete()` method then needs\nto be called in order to finalize the reorder action."
+            },
+            "complexType": {
+                "original": "ItemReorderEventDetail",
+                "resolved": "ItemReorderEventDetail",
+                "references": {
+                    "ItemReorderEventDetail": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            }
         }]; }
-    static get style() { return "/**style-placeholder:ion-reorder-group:**/"; }
+    static get methods() { return {
+        "complete": {
+            "complexType": {
+                "signature": "(listOrReorder?: boolean | any[] | undefined) => Promise<any>",
+                "parameters": [{
+                        "tags": [{
+                                "text": "listOrReorder A list of items to be sorted and returned in the new order or a\nboolean of whether or not the reorder should reposition the item.",
+                                "name": "param"
+                            }],
+                        "text": "A list of items to be sorted and returned in the new order or a\nboolean of whether or not the reorder should reposition the item."
+                    }],
+                "references": {
+                    "Promise": {
+                        "location": "global"
+                    }
+                },
+                "return": "Promise<any>"
+            },
+            "docs": {
+                "text": "Completes the reorder operation. Must be called by the `ionItemReorder` event.\n\nIf a list of items is passed, the list will be reordered and returned in the\nproper order.\n\nIf no parameters are passed or if `true` is passed in, the reorder will complete\nand the item will remain in the position it was dragged to. If `false` is passed,\nthe reorder will complete and the item will bounce back to its original position.",
+                "tags": [{
+                        "name": "param",
+                        "text": "listOrReorder A list of items to be sorted and returned in the new order or a\nboolean of whether or not the reorder should reposition the item."
+                    }]
+            }
+        }
+    }; }
+    static get elementRef() { return "el"; }
+    static get watchers() { return [{
+            "propName": "disabled",
+            "methodName": "disabledChanged"
+        }]; }
 }
-function indexForItem(element) {
+const indexForItem = (element) => {
     return element['$ionIndex'];
-}
-function findReorderItem(node, container) {
-    let nested = 0;
+};
+const findReorderItem = (node, container) => {
     let parent;
-    while (node && nested < 6) {
-        parent = node.parentNode;
+    while (node) {
+        parent = node.parentElement;
         if (parent === container) {
             return node;
         }
         node = parent;
-        nested++;
     }
     return undefined;
-}
+};
 const AUTO_SCROLL_MARGIN = 60;
 const SCROLL_JUMP = 10;
 const ITEM_REORDER_SELECTED = 'reorder-selected';
-function reorderArray(array, from, to) {
+const reorderArray = (array, from, to) => {
     const element = array[from];
     array.splice(from, 1);
     array.splice(to, 0, element);
     return array.slice();
-}
+};

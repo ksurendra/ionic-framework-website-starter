@@ -1,6 +1,8 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
-import { Color, Mode } from '../../interface';
+import { ComponentInterface } from '../../stencil-public-runtime';
+import { Color } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class CardHeader implements ComponentInterface {
     /**
      * The color to use from your application's color palette.
@@ -9,19 +11,10 @@ export declare class CardHeader implements ComponentInterface {
      */
     color?: Color;
     /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
-    /**
      * If `true`, the card header will be translucent.
+     * Only applies when the mode is `"ios"` and the device supports
+     * [`backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter#Browser_compatibility).
      */
     translucent: boolean;
-    hostData(): {
-        class: {
-            'card-header-translucent': boolean;
-        } | {
-            'card-header-translucent': boolean;
-        };
-    };
-    render(): JSX.Element;
+    render(): any;
 }

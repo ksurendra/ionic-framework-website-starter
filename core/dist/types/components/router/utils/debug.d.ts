@@ -1,3 +1,3 @@
 import { RouteChain, RouteRedirect } from './interface';
-export declare function printRoutes(routes: RouteChain[]): void;
-export declare function printRedirects(redirects: RouteRedirect[]): void;
+export declare const printRoutes: (routes: RouteChain[]) => void;
+export declare const printRedirects: (redirects: RouteRedirect[]) => void;

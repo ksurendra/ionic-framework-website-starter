@@ -1,4 +1,17 @@
-export function renderDatetime(template, value, locale) {
+/**
+ * Gets a date value given a format
+ * Defaults to the current date if
+ * no date given
+ */
+export const getDateValue = (date, format) => {
+    const getValue = getValueFromFormat(date, format);
+    if (getValue !== undefined) {
+        return getValue;
+    }
+    const defaultDate = parseDate(new Date().toISOString());
+    return getValueFromFormat(defaultDate, format);
+};
+export const renderDatetime = (template, value, locale) => {
     if (value === undefined) {
         return undefined;
     }
@@ -22,8 +35,8 @@ export function renderDatetime(template, value, locale) {
         template = template.replace(tokens[i], tokens[i + 1]);
     }
     return template;
-}
-export function renderTextFormat(format, value, date, locale) {
+};
+export const renderTextFormat = (format, value, date, locale) => {
     if ((format === FORMAT_DDDD || format === FORMAT_DDD)) {
         try {
             value = (new Date(date.year, date.month - 1, date.day)).getDay();
@@ -33,6 +46,7 @@ export function renderTextFormat(format, value, date, locale) {
             return (locale.dayShortNames ? locale.dayShortNames : DAY_SHORT_NAMES)[value];
         }
         catch (e) {
+            // ignore
         }
         return undefined;
     }
@@ -75,10 +89,11 @@ export function renderTextFormat(format, value, date, locale) {
         }
     }
     return value.toString();
-}
-export function dateValueRange(format, min, max) {
+};
+export const dateValueRange = (format, min, max) => {
     const opts = [];
     if (format === FORMAT_YYYY || format === FORMAT_YY) {
+        // year
         if (max.year === undefined || min.year === undefined) {
             throw new Error('min and max year is undefined');
         }
@@ -89,75 +104,91 @@ export function dateValueRange(format, min, max) {
     else if (format === FORMAT_MMMM || format === FORMAT_MMM ||
         format === FORMAT_MM || format === FORMAT_M ||
         format === FORMAT_hh || format === FORMAT_h) {
+        // month or 12-hour
         for (let i = 1; i < 13; i++) {
             opts.push(i);
         }
     }
     else if (format === FORMAT_DDDD || format === FORMAT_DDD ||
         format === FORMAT_DD || format === FORMAT_D) {
+        // day
         for (let i = 1; i < 32; i++) {
             opts.push(i);
         }
     }
     else if (format === FORMAT_HH || format === FORMAT_H) {
+        // 24-hour
         for (let i = 0; i < 24; i++) {
             opts.push(i);
         }
     }
     else if (format === FORMAT_mm || format === FORMAT_m) {
+        // minutes
         for (let i = 0; i < 60; i++) {
             opts.push(i);
         }
     }
     else if (format === FORMAT_ss || format === FORMAT_s) {
+        // seconds
         for (let i = 0; i < 60; i++) {
             opts.push(i);
         }
     }
     else if (format === FORMAT_A || format === FORMAT_a) {
+        // AM/PM
         opts.push('am', 'pm');
     }
     return opts;
-}
-export function dateSortValue(year, month, day, hour = 0, minute = 0) {
+};
+export const dateSortValue = (year, month, day, hour = 0, minute = 0) => {
     return parseInt(`1${fourDigit(year)}${twoDigit(month)}${twoDigit(day)}${twoDigit(hour)}${twoDigit(minute)}`, 10);
-}
-export function dateDataSortValue(data) {
+};
+export const dateDataSortValue = (data) => {
     return dateSortValue(data.year, data.month, data.day, data.hour, data.minute);
-}
-export function daysInMonth(month, year) {
+};
+export const daysInMonth = (month, year) => {
     return (month === 4 || month === 6 || month === 9 || month === 11) ? 30 : (month === 2) ? isLeapYear(year) ? 29 : 28 : 31;
-}
-export function isLeapYear(year) {
+};
+export const isLeapYear = (year) => {
     return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-}
+};
 const ISO_8601_REGEXP = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/;
 const TIME_REGEXP = /^((\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/;
-export function parseDate(val) {
+export const parseDate = (val) => {
+    // manually parse IS0 cuz Date.parse cannot be trusted
+    // ISO 8601 format: 1994-12-15T13:47:20Z
     let parse = null;
     if (val != null && val !== '') {
+        // try parsing for just time first, HH:MM
         parse = TIME_REGEXP.exec(val);
         if (parse) {
+            // adjust the array so it fits nicely with the datetime parse
             parse.unshift(undefined, undefined);
             parse[2] = parse[3] = undefined;
         }
         else {
+            // try parsing for full ISO datetime
             parse = ISO_8601_REGEXP.exec(val);
         }
     }
     if (parse === null) {
+        // wasn't able to parse the ISO datetime
         return undefined;
     }
+    // ensure all the parse values exist with at least 0
     for (let i = 1; i < 8; i++) {
         parse[i] = parse[i] !== undefined ? parseInt(parse[i], 10) : undefined;
     }
     let tzOffset = 0;
     if (parse[9] && parse[10]) {
+        // hours
         tzOffset = parseInt(parse[10], 10) * 60;
         if (parse[11]) {
+            // minutes
             tzOffset += parseInt(parse[11], 10);
         }
         if (parse[9] === '-') {
+            // + or -
             tzOffset *= -1;
         }
     }
@@ -171,30 +202,100 @@ export function parseDate(val) {
         millisecond: parse[7],
         tzOffset,
     };
-}
-export function updateDate(existingData, newData) {
+};
+/**
+ * Converts a valid UTC datetime string to JS Date time object.
+ * By default uses the users local timezone, but an optional
+ * timezone can be provided.
+ * Note: This is not meant for time strings
+ * such as "01:47"
+ */
+export const getDateTime = (dateString = '', timeZone = '') => {
+    /**
+     * If user passed in undefined
+     * or null, convert it to the
+     * empty string since the rest
+     * of this functions expects
+     * a string
+     */
+    if (dateString === undefined || dateString === null) {
+        dateString = '';
+    }
+    /**
+     * Ensures that YYYY-MM-DD, YYYY-MM,
+     * YYYY-DD, etc does not get affected
+     * by timezones and stays on the day/month
+     * that the user provided
+     */
+    if (dateString.length === 10 ||
+        dateString.length === 7) {
+        dateString += ' ';
+    }
+    const date = (typeof dateString === 'string' && dateString.length > 0) ? new Date(dateString) : new Date();
+    const localDateTime = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()));
+    if (timeZone && timeZone.length > 0) {
+        return new Date(date.getTime() - getTimezoneOffset(localDateTime, timeZone));
+    }
+    return localDateTime;
+};
+export const getTimezoneOffset = (localDate, timeZone) => {
+    const utcDateTime = new Date(localDate.toLocaleString('en-US', { timeZone: 'utc' }));
+    const tzDateTime = new Date(localDate.toLocaleString('en-US', { timeZone }));
+    return utcDateTime.getTime() - tzDateTime.getTime();
+};
+export const updateDate = (existingData, newData, displayTimezone) => {
+    if (!newData || typeof newData === 'string') {
+        const dateTime = getDateTime(newData, displayTimezone);
+        if (!Number.isNaN(dateTime.getTime())) {
+            newData = dateTime.toISOString();
+        }
+    }
     if (newData && newData !== '') {
         if (typeof newData === 'string') {
+            // new date is a string, and hopefully in the ISO format
+            // convert it to our DatetimeData if a valid ISO
             newData = parseDate(newData);
             if (newData) {
+                // successfully parsed the ISO string to our DatetimeData
                 Object.assign(existingData, newData);
                 return true;
             }
         }
         else if ((newData.year || newData.hour || newData.month || newData.day || newData.minute || newData.second)) {
+            // newData is from of a datetime picker's selected values
+            // update the existing DatetimeData data with the new values
+            // do some magic for 12-hour values
             if (newData.ampm && newData.hour) {
                 newData.hour.value = (newData.ampm.value === 'pm')
                     ? (newData.hour.value === 12 ? 12 : newData.hour.value + 12)
                     : (newData.hour.value === 12 ? 0 : newData.hour.value);
             }
+            // merge new values from the picker's selection
+            // to the existing DatetimeData values
             for (const key of Object.keys(newData)) {
                 existingData[key] = newData[key].value;
             }
             return true;
         }
+        else if (newData.ampm) {
+            // Even though in the picker column hour values are between 1 and 12, the hour value is actually normalized
+            // to [0, 23] interval. Because of this when changing between AM and PM we have to update the hour so it points
+            // to the correct HH hour
+            newData.hour = {
+                value: newData.hour
+                    ? newData.hour.value
+                    : (newData.ampm.value === 'pm'
+                        ? (existingData.hour < 12 ? existingData.hour + 12 : existingData.hour)
+                        : (existingData.hour >= 12 ? existingData.hour - 12 : existingData.hour))
+            };
+            existingData['hour'] = newData['hour'].value;
+            return true;
+        }
+        // eww, invalid data
         console.warn(`Error parsing date: "${newData}". Please provide a valid ISO 8601 datetime format: https://www.w3.org/TR/NOTE-datetime`);
     }
     else {
+        // blank data, clear everything out
         for (const k in existingData) {
             if (existingData.hasOwnProperty(k)) {
                 delete existingData[k];
@@ -202,8 +303,8 @@ export function updateDate(existingData, newData) {
         }
     }
     return false;
-}
-export function parseTemplate(template) {
+};
+export const parseTemplate = (template) => {
     const formats = [];
     template = template.replace(/[^\w\s]/gi, ' ');
     FORMAT_KEYS.forEach(format => {
@@ -216,8 +317,12 @@ export function parseTemplate(template) {
         FORMAT_KEYS.forEach(format => {
             if (word === format.f) {
                 if (word === FORMAT_A || word === FORMAT_a) {
+                    // this format is an am/pm format, so it's an "a" or "A"
                     if ((formats.indexOf(FORMAT_h) < 0 && formats.indexOf(FORMAT_hh) < 0) ||
                         VALID_AMPM_PREFIX.indexOf(words[i - 1]) === -1) {
+                        // template does not already have a 12-hour format
+                        // or this am/pm format doesn't have a hour, minute, or second format immediately before it
+                        // so do not treat this word "a" or "A" as the am/pm format
                         return;
                     }
                 }
@@ -226,41 +331,49 @@ export function parseTemplate(template) {
         });
     });
     return formats;
-}
-export function getValueFromFormat(date, format) {
+};
+export const getValueFromFormat = (date, format) => {
     if (format === FORMAT_A || format === FORMAT_a) {
         return (date.hour < 12 ? 'am' : 'pm');
     }
     if (format === FORMAT_hh || format === FORMAT_h) {
-        return (date.hour > 12 ? date.hour - 12 : date.hour);
+        return (date.hour > 12 ? date.hour - 12 : (date.hour === 0 ? 12 : date.hour));
     }
     return date[convertFormatToKey(format)];
-}
-export function convertFormatToKey(format) {
+};
+export const convertFormatToKey = (format) => {
     for (const k in FORMAT_KEYS) {
         if (FORMAT_KEYS[k].f === format) {
             return FORMAT_KEYS[k].k;
         }
     }
     return undefined;
-}
-export function convertDataToISO(data) {
+};
+export const convertDataToISO = (data) => {
+    // https://www.w3.org/TR/NOTE-datetime
     let rtn = '';
     if (data.year !== undefined) {
+        // YYYY
         rtn = fourDigit(data.year);
         if (data.month !== undefined) {
+            // YYYY-MM
             rtn += '-' + twoDigit(data.month);
             if (data.day !== undefined) {
+                // YYYY-MM-DD
                 rtn += '-' + twoDigit(data.day);
                 if (data.hour !== undefined) {
+                    // YYYY-MM-DDTHH:mm:SS
                     rtn += `T${twoDigit(data.hour)}:${twoDigit(data.minute)}:${twoDigit(data.second)}`;
                     if (data.millisecond > 0) {
+                        // YYYY-MM-DDTHH:mm:SS.SSS
                         rtn += '.' + threeDigit(data.millisecond);
                     }
                     if (data.tzOffset === undefined) {
+                        // YYYY-MM-DDTHH:mm:SSZ
                         rtn += 'Z';
                     }
                     else {
+                        // YYYY-MM-DDTHH:mm:SS+/-HH:mm
                         rtn += (data.tzOffset > 0 ? '+' : '-') + twoDigit(Math.floor(Math.abs(data.tzOffset / 60))) + ':' + twoDigit(data.tzOffset % 60);
                     }
                 }
@@ -268,38 +381,55 @@ export function convertDataToISO(data) {
         }
     }
     else if (data.hour !== undefined) {
+        // HH:mm
         rtn = twoDigit(data.hour) + ':' + twoDigit(data.minute);
         if (data.second !== undefined) {
+            // HH:mm:SS
             rtn += ':' + twoDigit(data.second);
             if (data.millisecond !== undefined) {
+                // HH:mm:SS.SSS
                 rtn += '.' + threeDigit(data.millisecond);
             }
         }
     }
     return rtn;
-}
-export function convertToArrayOfStrings(input, type) {
+};
+/**
+ * Use to convert a string of comma separated strings or
+ * an array of strings, and clean up any user input
+ */
+export const convertToArrayOfStrings = (input, type) => {
     if (input == null) {
         return undefined;
     }
     if (typeof input === 'string') {
+        // convert the string to an array of strings
+        // auto remove any [] characters
         input = input.replace(/\[|\]/g, '').split(',');
     }
     let values;
     if (Array.isArray(input)) {
+        // trim up each string value
         values = input.map(val => val.toString().trim());
     }
     if (values === undefined || values.length === 0) {
         console.warn(`Invalid "${type}Names". Must be an array of strings, or a comma separated string.`);
     }
     return values;
-}
-export function convertToArrayOfNumbers(input, type) {
+};
+/**
+ * Use to convert a string of comma separated numbers or
+ * an array of numbers, and clean up any user input
+ */
+export const convertToArrayOfNumbers = (input, type) => {
     if (typeof input === 'string') {
+        // convert the string to an array of strings
+        // auto remove any whitespace and [] characters
         input = input.replace(/\[|\]|\s/g, '').split(',');
     }
     let values;
     if (Array.isArray(input)) {
+        // ensure each value is an actual number in the returned array
         values = input
             .map((num) => parseInt(num, 10))
             .filter(isFinite);
@@ -311,16 +441,16 @@ export function convertToArrayOfNumbers(input, type) {
         console.warn(`Invalid "${type}Values". Must be an array of numbers, or a comma separated string of numbers.`);
     }
     return values;
-}
-function twoDigit(val) {
+};
+const twoDigit = (val) => {
     return ('0' + (val !== undefined ? Math.abs(val) : '0')).slice(-2);
-}
-function threeDigit(val) {
+};
+const threeDigit = (val) => {
     return ('00' + (val !== undefined ? Math.abs(val) : '0')).slice(-3);
-}
-function fourDigit(val) {
+};
+const fourDigit = (val) => {
     return ('000' + (val !== undefined ? Math.abs(val) : '0')).slice(-4);
-}
+};
 const FORMAT_YYYY = 'YYYY';
 const FORMAT_YY = 'YY';
 const FORMAT_MMMM = 'MMMM';

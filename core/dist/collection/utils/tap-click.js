@@ -1,72 +1,64 @@
 import { now, pointerCoord } from './helpers';
-export function startTapClick(doc, config) {
+export const startTapClick = (config) => {
     let lastTouch = -MOUSE_WAIT * 10;
     let lastActivated = 0;
-    let cancelled = false;
-    let scrolling = false;
+    let scrollingEl;
     let activatableEle;
     let activeRipple;
     let activeDefer;
     const useRippleEffect = config.getBoolean('animated', true) && config.getBoolean('rippleEffect', true);
     const clearDefers = new WeakMap();
-    function onBodyClick(ev) {
-        if (cancelled || scrolling) {
-            ev.preventDefault();
-            ev.stopPropagation();
-        }
-    }
-    function onTouchStart(ev) {
+    const isScrolling = () => {
+        return scrollingEl !== undefined && scrollingEl.parentElement !== null;
+    };
+    // Touch Events
+    const onTouchStart = (ev) => {
         lastTouch = now(ev);
         pointerDown(ev);
-    }
-    function onTouchEnd(ev) {
+    };
+    const onTouchEnd = (ev) => {
         lastTouch = now(ev);
         pointerUp(ev);
-    }
-    function onMouseDown(ev) {
+    };
+    const onMouseDown = (ev) => {
         const t = now(ev) - MOUSE_WAIT;
         if (lastTouch < t) {
             pointerDown(ev);
         }
-    }
-    function onMouseUp(ev) {
+    };
+    const onMouseUp = (ev) => {
         const t = now(ev) - MOUSE_WAIT;
         if (lastTouch < t) {
             pointerUp(ev);
         }
-    }
-    function cancelActive() {
+    };
+    const cancelActive = () => {
         clearTimeout(activeDefer);
         activeDefer = undefined;
         if (activatableEle) {
             removeActivated(false);
             activatableEle = undefined;
         }
-        cancelled = true;
-    }
-    function pointerDown(ev) {
-        if (activatableEle || scrolling) {
+    };
+    const pointerDown = (ev) => {
+        if (activatableEle || isScrolling()) {
             return;
         }
-        cancelled = false;
+        scrollingEl = undefined;
         setActivatedElement(getActivatableTarget(ev), ev);
-    }
-    function pointerUp(ev) {
-        if (scrolling) {
-            return;
-        }
+    };
+    const pointerUp = (ev) => {
         setActivatedElement(undefined, ev);
-        if (cancelled && ev.cancelable) {
-            ev.preventDefault();
-        }
-    }
-    function setActivatedElement(el, ev) {
+    };
+    const setActivatedElement = (el, ev) => {
+        // do nothing
         if (el && el === activatableEle) {
             return;
         }
         clearTimeout(activeDefer);
         activeDefer = undefined;
         const { x, y } = pointerCoord(ev);
+        // deactivate selected
         if (activatableEle) {
             if (clearDefers.has(activatableEle)) {
                 throw new Error('internal error');
@@ -76,6 +68,7 @@ export function startTapClick(doc, config) {
             }
             removeActivated(true);
         }
+        // activate
         if (el) {
             const deferId = clearDefers.get(el);
             if (deferId) {
@@ -90,19 +83,24 @@ export function startTapClick(doc, config) {
             }, delay);
         }
         activatableEle = el;
-    }
-    function addActivated(el, x, y) {
+    };
+    const addActivated = (el, x, y) => {
         lastActivated = Date.now();
         el.classList.add(ACTIVATED);
         const rippleEffect = useRippleEffect && getRippleEffect(el);
         if (rippleEffect && rippleEffect.addRipple) {
+            removeRipple();
             activeRipple = rippleEffect.addRipple(x, y);
         }
-    }
-    function removeActivated(smooth) {
+    };
+    const removeRipple = () => {
         if (activeRipple !== undefined) {
             activeRipple.then(remove => remove());
+            activeRipple = undefined;
         }
+    };
+    const removeActivated = (smooth) => {
+        removeRipple();
         const active = activatableEle;
         if (!active) {
             return;
@@ -118,14 +116,14 @@ export function startTapClick(doc, config) {
         else {
             active.classList.remove(ACTIVATED);
         }
-    }
-    doc.addEventListener('click', onBodyClick, true);
-    doc.addEventListener('ionScrollStart', () => {
-        scrolling = true;
+    };
+    const doc = document;
+    doc.addEventListener('ionScrollStart', ev => {
+        scrollingEl = ev.target;
         cancelActive();
     });
     doc.addEventListener('ionScrollEnd', () => {
-        scrolling = false;
+        scrollingEl = undefined;
     });
     doc.addEventListener('ionGestureCaptured', cancelActive);
     doc.addEventListener('touchstart', onTouchStart, true);
@@ -133,8 +131,8 @@ export function startTapClick(doc, config) {
     doc.addEventListener('touchend', onTouchEnd, true);
     doc.addEventListener('mousedown', onMouseDown, true);
     doc.addEventListener('mouseup', onMouseUp, true);
-}
-function getActivatableTarget(ev) {
+};
+const getActivatableTarget = (ev) => {
     if (ev.composedPath) {
         const path = ev.composedPath();
         for (let i = 0; i < path.length - 2; i++) {
@@ -147,11 +145,11 @@ function getActivatableTarget(ev) {
     else {
         return ev.target.closest('.ion-activatable');
     }
-}
-function isInstant(el) {
+};
+const isInstant = (el) => {
     return el.classList.contains('ion-activatable-instant');
-}
-function getRippleEffect(el) {
+};
+const getRippleEffect = (el) => {
     if (el.shadowRoot) {
         const ripple = el.shadowRoot.querySelector('ion-ripple-effect');
         if (ripple) {
@@ -159,8 +157,8 @@ function getRippleEffect(el) {
         }
     }
     return el.querySelector('ion-ripple-effect');
-}
-const ACTIVATED = 'activated';
+};
+const ACTIVATED = 'ion-activated';
 const ADD_ACTIVATED_DEFERS = 200;
 const CLEAR_STATE_DEFERS = 200;
 const MOUSE_WAIT = 2500;

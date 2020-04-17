@@ -1,118 +1,130 @@
+import { Component, Element, Event, Host, Prop, Watch, h } from '@stencil/core';
+import { getIonMode } from '../../global/ionic-global';
 export class RadioGroup {
     constructor() {
         this.inputId = `ion-rg-${radioGroupIds++}`;
         this.labelId = `${this.inputId}-lbl`;
-        this.radios = [];
+        /**
+         * If `true`, the radios can be deselected.
+         */
         this.allowEmptySelection = false;
+        /**
+         * The name of the control, which is submitted with the form data.
+         */
         this.name = this.inputId;
+        this.onClick = (ev) => {
+            const selectedRadio = ev.target && ev.target.closest('ion-radio');
+            if (selectedRadio) {
+                const currentValue = this.value;
+                const newValue = selectedRadio.value;
+                if (newValue !== currentValue) {
+                    this.value = newValue;
+                }
+                else if (this.allowEmptySelection) {
+                    this.value = undefined;
+                }
+            }
+        };
     }
     valueChanged(value) {
-        this.updateRadios();
         this.ionChange.emit({ value });
     }
-    onRadioDidLoad(ev) {
-        const radio = ev.target;
-        radio.name = this.name;
-        this.radios.push(radio);
-        if (this.value == null && radio.checked) {
-            this.value = radio.value;
-        }
-        else {
-            this.updateRadios();
-        }
-    }
-    onRadioDidUnload(ev) {
-        const index = this.radios.indexOf(ev.target);
-        if (index > -1) {
-            this.radios.splice(index, 1);
-        }
-    }
-    onRadioSelect(ev) {
-        const selectedRadio = ev.target;
-        if (selectedRadio) {
-            this.value = selectedRadio.value;
-        }
-    }
-    onRadioDeselect(ev) {
-        if (this.allowEmptySelection) {
-            const selectedRadio = ev.target;
-            if (selectedRadio) {
-                selectedRadio.checked = false;
-                this.value = undefined;
-            }
-        }
-    }
-    componentDidLoad() {
-        let header = this.el.querySelector('ion-list-header');
-        if (!header) {
-            header = this.el.querySelector('ion-item-divider');
-        }
+    async connectedCallback() {
+        // Get the list header if it exists and set the id
+        // this is used to set aria-labelledby
+        const el = this.el;
+        const header = el.querySelector('ion-list-header') || el.querySelector('ion-item-divider');
         if (header) {
             const label = header.querySelector('ion-label');
             if (label) {
                 this.labelId = label.id = this.name + '-lbl';
             }
         }
-        this.updateRadios();
     }
-    updateRadios() {
-        const value = this.value;
-        let hasChecked = false;
-        for (const radio of this.radios) {
-            if (!hasChecked && radio.value === value) {
-                hasChecked = true;
-                radio.checked = true;
-            }
-            else {
-                radio.checked = false;
-            }
-        }
-    }
-    hostData() {
-        return {
-            'role': 'radiogroup',
-            'aria-labelledby': this.labelId
-        };
+    render() {
+        return (h(Host, { role: "radiogroup", "aria-labelledby": this.labelId, onClick: this.onClick, class: getIonMode(this) }));
     }
     static get is() { return "ion-radio-group"; }
     static get properties() { return {
         "allowEmptySelection": {
-            "type": Boolean,
-            "attr": "allow-empty-selection"
-        },
-        "el": {
-            "elementRef": true
+            "type": "boolean",
+            "mutable": false,
+            "complexType": {
+                "original": "boolean",
+                "resolved": "boolean",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "If `true`, the radios can be deselected."
+            },
+            "attribute": "allow-empty-selection",
+            "reflect": false,
+            "defaultValue": "false"
         },
         "name": {
-            "type": String,
-            "attr": "name"
+            "type": "string",
+            "mutable": false,
+            "complexType": {
+                "original": "string",
+                "resolved": "string",
+                "references": {}
+            },
+            "required": false,
+            "optional": false,
+            "docs": {
+                "tags": [],
+                "text": "The name of the control, which is submitted with the form data."
+            },
+            "attribute": "name",
+            "reflect": false,
+            "defaultValue": "this.inputId"
         },
         "value": {
-            "type": "Any",
-            "attr": "value",
+            "type": "any",
             "mutable": true,
-            "watchCallbacks": ["valueChanged"]
+            "complexType": {
+                "original": "any | null",
+                "resolved": "any",
+                "references": {}
+            },
+            "required": false,
+            "optional": true,
+            "docs": {
+                "tags": [],
+                "text": "the value of the radio group."
+            },
+            "attribute": "value",
+            "reflect": false
         }
     }; }
     static get events() { return [{
-            "name": "ionChange",
             "method": "ionChange",
+            "name": "ionChange",
             "bubbles": true,
             "cancelable": true,
-            "composed": true
+            "composed": true,
+            "docs": {
+                "tags": [],
+                "text": "Emitted when the value has changed."
+            },
+            "complexType": {
+                "original": "RadioGroupChangeEventDetail",
+                "resolved": "RadioGroupChangeEventDetail",
+                "references": {
+                    "RadioGroupChangeEventDetail": {
+                        "location": "import",
+                        "path": "../../interface"
+                    }
+                }
+            }
         }]; }
-    static get listeners() { return [{
-            "name": "ionRadioDidLoad",
-            "method": "onRadioDidLoad"
-        }, {
-            "name": "ionRadioDidUnload",
-            "method": "onRadioDidUnload"
-        }, {
-            "name": "ionSelect",
-            "method": "onRadioSelect"
-        }, {
-            "name": "ionDeselect",
-            "method": "onRadioDeselect"
+    static get elementRef() { return "el"; }
+    static get watchers() { return [{
+            "propName": "value",
+            "methodName": "valueChanged"
         }]; }
 }
 let radioGroupIds = 0;

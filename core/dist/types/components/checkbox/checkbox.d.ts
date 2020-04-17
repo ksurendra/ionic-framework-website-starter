@@ -1,20 +1,18 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { CheckboxChangeEventDetail, Color, Mode, StyleEventDetail } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { CheckboxChangeEventDetail, Color, StyleEventDetail } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Checkbox implements ComponentInterface {
     private inputId;
+    private buttonEl?;
     el: HTMLElement;
-    keyFocus: boolean;
     /**
      * The color to use from your application's color palette.
      * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
      * For more information on colors, see [theming](/docs/theming/basics).
      */
     color?: Color;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * The name of the control, which is submitted with the form data.
      */
@@ -23,6 +21,10 @@ export declare class Checkbox implements ComponentInterface {
      * If `true`, the checkbox is selected.
      */
     checked: boolean;
+    /**
+     * If `true`, the checkbox will visually appear as indeterminate.
+     */
+    indeterminate: boolean;
     /**
      * If `true`, the user cannot interact with the checkbox.
      */
@@ -54,29 +56,11 @@ export declare class Checkbox implements ComponentInterface {
     ionStyle: EventEmitter<StyleEventDetail>;
     componentWillLoad(): void;
     checkedChanged(isChecked: boolean): void;
-    emitStyle(): void;
+    disabledChanged(): void;
+    private emitStyle;
+    private setFocus;
     private onClick;
-    private onKeyUp;
     private onFocus;
     private onBlur;
-    hostData(): {
-        'role': string;
-        'aria-disabled': string | null;
-        'aria-checked': string;
-        'aria-labelledby': string;
-        class: {
-            'in-item': boolean;
-            'checkbox-checked': boolean;
-            'checkbox-disabled': boolean;
-            'checkbox-key': boolean;
-            'interactive': boolean;
-        } | {
-            'in-item': boolean;
-            'checkbox-checked': boolean;
-            'checkbox-disabled': boolean;
-            'checkbox-key': boolean;
-            'interactive': boolean;
-        };
-    };
-    render(): JSX.Element[];
+    render(): any;
 }

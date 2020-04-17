@@ -1,4 +1,4 @@
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
 export declare class Route implements ComponentInterface {
     /**
      * Relative path that needs to match in order for this route to apply.
@@ -28,6 +28,5 @@ export declare class Route implements ComponentInterface {
     ionRouteDataChanged: EventEmitter<any>;
     onUpdate(newValue: any): void;
     onComponentProps(newValue: any, oldValue: any): void;
-    componentDidLoad(): void;
-    componentDidUnload(): void;
+    connectedCallback(): void;
 }

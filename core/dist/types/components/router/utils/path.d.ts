@@ -1,7 +1,7 @@
 import { RouteChain, RouterDirection } from '../../../interface';
-export declare function generatePath(segments: string[]): string;
-export declare function chainToPath(chain: RouteChain): string[] | null;
-export declare function writePath(history: History, root: string, useHash: boolean, path: string[], direction: RouterDirection, state: number): void;
-export declare function removePrefix(prefix: string[], path: string[]): string[] | null;
-export declare function readPath(loc: Location, root: string, useHash: boolean): string[] | null;
-export declare function parsePath(path: string | undefined | null): string[];
+export declare const generatePath: (segments: string[]) => string;
+export declare const chainToPath: (chain: RouteChain) => string[] | null;
+export declare const writePath: (history: History, root: string, useHash: boolean, path: string[], direction: RouterDirection, state: number) => void;
+export declare const removePrefix: (prefix: string[], path: string[]) => string[] | null;
+export declare const readPath: (loc: Location, root: string, useHash: boolean) => string[] | null;
+export declare const parsePath: (path: string | null | undefined) => string[];

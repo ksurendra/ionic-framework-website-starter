@@ -1,6 +1,8 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { Color, InputChangeEventDetail, Mode, StyleEventDetail, TextFieldTypes } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { Color, InputChangeEventDetail, StyleEventDetail, TextFieldTypes } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Input implements ComponentInterface {
     private nativeInput?;
     private inputId;
@@ -13,10 +15,6 @@ export declare class Input implements ComponentInterface {
      * For more information on colors, see [theming](/docs/theming/basics).
      */
     color?: Color;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * If the value of the type attribute is `"file"`, then this attribute will indicate the types of files that the server accepts, otherwise it will be ignored. The value must be a comma-separated list of unique content type specifiers.
      */
@@ -57,9 +55,10 @@ export declare class Input implements ComponentInterface {
     protected disabledChanged(): void;
     /**
      * A hint to the browser for which keyboard to display.
-     * This attribute applies when the value of the type attribute is `"text"`, `"password"`, `"email"`, or `"url"`. Possible values are: `"verbatim"`, `"latin"`, `"latin-name"`, `"latin-prose"`, `"full-width-latin"`, `"kana"`, `"katakana"`, `"numeric"`, `"tel"`, `"email"`, `"url"`.
+     * Possible values: `"none"`, `"text"`, `"tel"`, `"url"`,
+     * `"email"`, `"numeric"`, `"decimal"`, and `"search"`.
      */
-    inputmode?: string;
+    inputmode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
     /**
      * The maximum value, which must not be less than its minimum (min attribute) value.
      */
@@ -120,13 +119,13 @@ export declare class Input implements ComponentInterface {
     /**
      * The value of the input.
      */
-    value?: string | null;
+    value?: string | number | null;
     /**
      * Update the native input element when the value changes
      */
     protected valueChanged(): void;
     /**
-     * Emitted when a keyboard input ocurred.
+     * Emitted when a keyboard input occurred.
      */
     ionInput: EventEmitter<KeyboardEvent>;
     /**
@@ -142,28 +141,22 @@ export declare class Input implements ComponentInterface {
      */
     ionFocus: EventEmitter<void>;
     /**
-     * Emitted when the input has been created.
-     * @internal
-     */
-    ionInputDidLoad: EventEmitter<void>;
-    /**
-     * Emitted when the input has been removed.
-     * @internal
-     */
-    ionInputDidUnload: EventEmitter<void>;
-    /**
      * Emitted when the styles change.
      * @internal
      */
     ionStyle: EventEmitter<StyleEventDetail>;
-    componentWillLoad(): void;
-    componentDidLoad(): void;
-    componentDidUnload(): void;
+    connectedCallback(): void;
+    disconnectedCallback(): void;
     /**
      * Sets focus on the specified `ion-input`. Use this method instead of the global
      * `input.focus()`.
      */
-    setFocus(): void;
+    setFocus(): Promise<void>;
+    /**
+     * Returns the native `<input>` element used under the hood.
+     */
+    getInputElement(): Promise<HTMLInputElement>;
+    private shouldClearOnEdit;
     private getValue;
     private emitStyle;
     private onInput;
@@ -173,17 +166,5 @@ export declare class Input implements ComponentInterface {
     private clearTextInput;
     private focusChanged;
     private hasValue;
-    hostData(): {
-        'aria-disabled': string | null;
-        class: {
-            'in-item': boolean;
-            'has-value': boolean;
-            'has-focus': boolean;
-        } | {
-            'in-item': boolean;
-            'has-value': boolean;
-            'has-focus': boolean;
-        };
-    };
-    render(): JSX.Element[];
+    render(): any;
 }

@@ -1,24 +1,19 @@
+import { Component, Host, h } from '@stencil/core';
+import { getIonMode } from '../../global/ionic-global';
 export class Slide {
-    componentDidLoad() {
-        this.ionSlideChanged.emit();
-    }
-    componentDidUnload() {
-        this.ionSlideChanged.emit();
-    }
-    hostData() {
-        return {
-            class: {
-                'swiper-slide': true
-            }
-        };
+    render() {
+        const mode = getIonMode(this);
+        return (h(Host, { class: {
+                [mode]: true,
+                'swiper-slide': true,
+                'swiper-zoom-container': true
+            } }));
     }
     static get is() { return "ion-slide"; }
-    static get events() { return [{
-            "name": "ionSlideChanged",
-            "method": "ionSlideChanged",
-            "bubbles": true,
-            "cancelable": true,
-            "composed": true
-        }]; }
-    static get style() { return "/**style-placeholder:ion-slide:**/"; }
+    static get originalStyleUrls() { return {
+        "$": ["slide.scss"]
+    }; }
+    static get styleUrls() { return {
+        "$": ["slide.css"]
+    }; }
 }

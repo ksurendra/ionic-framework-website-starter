@@ -1,4 +1,4 @@
-export async function attachComponent(delegate, container, component, cssClasses, componentProps) {
+export const attachComponent = async (delegate, container, component, cssClasses, componentProps) => {
     if (delegate) {
         return delegate.attachViewToDom(container, component, componentProps, cssClasses);
     }
@@ -19,8 +19,8 @@ export async function attachComponent(delegate, container, component, cssClasses
         await el.componentOnReady();
     }
     return el;
-}
-export function detachComponent(delegate, element) {
+};
+export const detachComponent = (delegate, element) => {
     if (element) {
         if (delegate) {
             const container = element.parentElement;
@@ -29,4 +29,4 @@ export function detachComponent(delegate, element) {
         element.remove();
     }
     return Promise.resolve();
-}
+};

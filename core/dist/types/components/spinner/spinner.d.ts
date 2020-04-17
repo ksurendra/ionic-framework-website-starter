@@ -1,8 +1,6 @@
-import { ComponentInterface } from '../../stencil.core';
-import { Color, Config, Mode, SpinnerTypes } from '../../interface';
+import { ComponentInterface } from '../../stencil-public-runtime';
+import { Color, SpinnerTypes } from '../../interface';
 export declare class Spinner implements ComponentInterface {
-    config: Config;
-    mode: Mode;
     /**
      * The color to use from your application's color palette.
      * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
@@ -23,13 +21,5 @@ export declare class Spinner implements ComponentInterface {
      */
     paused: boolean;
     private getName;
-    hostData(): {
-        class: {
-            'spinner-paused': boolean;
-        } | {
-            [x: string]: boolean;
-            'spinner-paused': boolean;
-        };
-    };
-    render(): any[];
+    render(): any;
 }

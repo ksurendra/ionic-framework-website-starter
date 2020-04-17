@@ -1,5 +1,5 @@
 import { ComponentRef, FrameworkDelegate } from '../interface';
-export declare function attachComponent(delegate: FrameworkDelegate | undefined, container: Element, component: ComponentRef, cssClasses?: string[], componentProps?: {
+export declare const attachComponent: (delegate: FrameworkDelegate | undefined, container: Element, component: ComponentRef, cssClasses?: string[] | undefined, componentProps?: {
     [key: string]: any;
-}): Promise<HTMLElement>;
-export declare function detachComponent(delegate: FrameworkDelegate | undefined, element: HTMLElement | undefined): Promise<void>;
+} | undefined) => Promise<HTMLElement>;
+export declare const detachComponent: (delegate: FrameworkDelegate | undefined, element: HTMLElement | undefined) => Promise<void>;

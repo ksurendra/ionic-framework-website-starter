@@ -1,6 +1,8 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
-import { Color, Mode } from '../../interface';
+import { ComponentInterface } from '../../stencil-public-runtime';
+import { Color } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Chip implements ComponentInterface {
     /**
      * The color to use from your application's color palette.
@@ -9,21 +11,8 @@ export declare class Chip implements ComponentInterface {
      */
     color?: Color;
     /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
-    /**
      * Display an outline style button.
      */
     outline: boolean;
-    hostData(): {
-        class: {
-            'chip-outline': boolean;
-            'ion-activatable': boolean;
-        } | {
-            'chip-outline': boolean;
-            'ion-activatable': boolean;
-        };
-    };
-    render(): (JSX.Element | null)[];
+    render(): any;
 }

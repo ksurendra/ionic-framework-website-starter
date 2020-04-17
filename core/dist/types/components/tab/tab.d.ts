@@ -1,5 +1,4 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
+import { ComponentInterface } from '../../stencil-public-runtime';
 import { ComponentRef, FrameworkDelegate } from '../../interface';
 export declare class Tab implements ComponentInterface {
     private loaded;
@@ -17,18 +16,10 @@ export declare class Tab implements ComponentInterface {
      * The component to display inside of the tab.
      */
     component?: ComponentRef;
-    componentWillLoad(): void;
+    componentWillLoad(): Promise<void>;
     /** Set the active component for the tab */
     setActive(): Promise<void>;
+    changeActive(isActive: boolean): void;
     private prepareLazyLoaded;
-    hostData(): {
-        'role': string;
-        'aria-hidden': string | null;
-        'aria-labelledby': string;
-        'class': {
-            'ion-page': boolean;
-            'tab-hidden': boolean;
-        };
-    };
-    render(): JSX.Element;
+    render(): any;
 }

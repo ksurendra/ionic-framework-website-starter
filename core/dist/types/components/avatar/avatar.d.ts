@@ -1,5 +1,4 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
+import { ComponentInterface } from '../../stencil-public-runtime';
 export declare class Avatar implements ComponentInterface {
-    render(): JSX.Element;
+    render(): any;
 }

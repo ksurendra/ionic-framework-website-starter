@@ -4,4 +4,4 @@ export interface PanRecognizer {
     isGesture(): boolean;
     getDirection(): number;
 }
-export declare function createPanRecognizer(direction: string, thresh: number, maxAngle: number): PanRecognizer;
+export declare const createPanRecognizer: (direction: string, thresh: number, maxAngle: number) => PanRecognizer;

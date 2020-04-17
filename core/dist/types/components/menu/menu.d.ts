@@ -1,29 +1,19 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter, EventListenerEnable, QueueApi } from '../../stencil.core';
-import { Config, MenuChangeEventDetail, MenuControllerI, MenuI, Mode, Side } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { MenuChangeEventDetail, MenuI, Side } from '../../interface';
 export declare class Menu implements ComponentInterface, MenuI {
     private animation?;
     private lastOnEnd;
     private gesture?;
     private blocker;
-    mode: Mode;
     isAnimating: boolean;
     width: number;
     _isOpen: boolean;
     backdropEl?: HTMLElement;
     menuInnerEl?: HTMLElement;
     contentEl?: HTMLElement;
-    menuCtrl?: MenuControllerI;
     el: HTMLIonMenuElement;
     isPaneVisible: boolean;
     isEndSide: boolean;
-    config: Config;
-    isServer: boolean;
-    lazyMenuCtrl: HTMLIonMenuControllerElement;
-    enableListener: EventListenerEnable;
-    win: Window;
-    queue: QueueApi;
-    doc: Document;
     /**
      * The content's id the menu should use.
      */
@@ -79,9 +69,9 @@ export declare class Menu implements ComponentInterface, MenuI {
      * @internal
      */
     protected ionMenuChange: EventEmitter<MenuChangeEventDetail>;
-    componentWillLoad(): Promise<void>;
-    componentDidLoad(): void;
-    componentDidUnload(): void;
+    connectedCallback(): Promise<void>;
+    componentDidLoad(): Promise<void>;
+    disconnectedCallback(): void;
     onSplitPaneChanged(ev: CustomEvent): void;
     onBackdropClick(ev: any): void;
     /**
@@ -129,15 +119,5 @@ export declare class Menu implements ComponentInterface, MenuI {
     private afterAnimation;
     private updateState;
     private forceClosing;
-    hostData(): {
-        role: string;
-        class: {
-            [x: string]: boolean;
-            'menu-enabled': boolean;
-            'menu-side-end': boolean;
-            'menu-side-start': boolean;
-            'menu-pane-visible': boolean;
-        };
-    };
-    render(): JSX.Element[];
+    render(): any;
 }

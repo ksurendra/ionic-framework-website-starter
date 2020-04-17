@@ -1,11 +1,4 @@
-import { ComponentInterface } from '../../stencil.core';
-import { Mode } from '../../interface';
+import { ComponentInterface } from '../../stencil-public-runtime';
 export declare class ItemGroup implements ComponentInterface {
-    mode: Mode;
-    hostData(): {
-        'role': string;
-        class: {
-            'item': boolean;
-        };
-    };
+    render(): any;
 }

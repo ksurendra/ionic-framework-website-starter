@@ -1,8 +1,9 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
-import { Color, Config, Mode } from '../../interface';
-export declare class MenuButton implements ComponentInterface {
-    config: Config;
+import { ComponentInterface } from '../../stencil-public-runtime';
+import { Color } from '../../interface';
+import { ButtonInterface } from '../../utils/element-interface';
+export declare class MenuButton implements ComponentInterface, ButtonInterface {
+    el: HTMLIonSegmentElement;
+    visible: boolean;
     /**
      * The color to use from your application's color palette.
      * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
@@ -10,9 +11,9 @@ export declare class MenuButton implements ComponentInterface {
      */
     color?: Color;
     /**
-     * The mode determines which platform styles to use.
+     * If `true`, the user cannot interact with the menu button.
      */
-    mode: Mode;
+    disabled: boolean;
     /**
      * Optional property that maps to a Menu's `menuId` prop. Can also be `start` or `end` for the menu side. This is used to find the correct menu to toggle
      */
@@ -21,11 +22,12 @@ export declare class MenuButton implements ComponentInterface {
      * Automatically hides the menu button when the corresponding menu is not active
      */
     autoHide: boolean;
-    hostData(): {
-        class: {
-            'button': boolean;
-            'ion-activatable': boolean;
-        };
-    };
-    render(): JSX.Element;
+    /**
+     * The type of the button.
+     */
+    type: 'submit' | 'reset' | 'button';
+    componentDidLoad(): void;
+    visibilityChanged(): Promise<void>;
+    private onClick;
+    render(): any;
 }

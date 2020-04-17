@@ -1,5 +1,5 @@
 import { parsePath } from './path';
-export function readRedirects(root) {
+export const readRedirects = (root) => {
     return Array.from(root.children)
         .filter(el => el.tagName === 'ION-ROUTE-REDIRECT')
         .map(el => {
@@ -9,11 +9,11 @@ export function readRedirects(root) {
             to: to == null ? undefined : parsePath(to),
         };
     });
-}
-export function readRoutes(root) {
+};
+export const readRoutes = (root) => {
     return flattenRouterTree(readRouteNodes(root));
-}
-export function readRouteNodes(root, node = root) {
+};
+export const readRouteNodes = (root, node = root) => {
     return Array.from(node.children)
         .filter(el => el.tagName === 'ION-ROUTE' && el.component)
         .map(el => {
@@ -28,8 +28,8 @@ export function readRouteNodes(root, node = root) {
             children: readRouteNodes(root, el)
         };
     });
-}
-export function readProp(el, prop) {
+};
+export const readProp = (el, prop) => {
     if (prop in el) {
         return el[prop];
     }
@@ -37,15 +37,15 @@ export function readProp(el, prop) {
         return el.getAttribute(prop);
     }
     return null;
-}
-export function flattenRouterTree(nodes) {
+};
+export const flattenRouterTree = (nodes) => {
     const routes = [];
     for (const node of nodes) {
         flattenNode([], routes, node);
     }
     return routes;
-}
-function flattenNode(chain, routes, node) {
+};
+const flattenNode = (chain, routes, node) => {
     const s = chain.slice();
     s.push({
         id: node.id,
@@ -59,4 +59,4 @@ function flattenNode(chain, routes, node) {
     for (const sub of node.children) {
         flattenNode(s, routes, sub);
     }
-}
+};

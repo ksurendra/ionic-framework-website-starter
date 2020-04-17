@@ -1,18 +1,14 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { Animation, AnimationBuilder, Config, Mode, OverlayEventDetail, OverlayInterface, PickerButton, PickerColumn } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { AnimationBuilder, OverlayEventDetail, OverlayInterface, PickerButton, PickerColumn } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Picker implements ComponentInterface, OverlayInterface {
     private durationTimeout;
-    animation?: Animation;
-    el: HTMLElement;
-    config: Config;
+    el: HTMLIonPickerElement;
     presented: boolean;
     /** @internal */
     overlayIndex: number;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
      */
@@ -70,13 +66,19 @@ export declare class Picker implements ComponentInterface, OverlayInterface {
      * Emitted after the picker has dismissed.
      */
     didDismiss: EventEmitter<OverlayEventDetail>;
-    protected onBackdropTap(): void;
+    constructor();
     /**
      * Present the picker overlay after it has been created.
      */
     present(): Promise<void>;
     /**
      * Dismiss the picker overlay after it has been presented.
+     *
+     * @param data Any data to emit in the dismiss events.
+     * @param role The role of the element that is dismissing the picker.
+     * This can be useful in a button handler for determining which button was
+     * clicked to dismiss the picker.
+     * Some examples include: ``"cancel"`, `"destructive"`, "selected"`, and `"backdrop"`.
      */
     dismiss(data?: any, role?: string): Promise<boolean>;
     /**
@@ -88,18 +90,15 @@ export declare class Picker implements ComponentInterface, OverlayInterface {
      */
     onWillDismiss(): Promise<OverlayEventDetail>;
     /**
-     * Returns the column the matches the specified name
+     * Get the column that matches the specified name.
+     *
+     * @param name The name of the column.
      */
     getColumn(name: string): Promise<PickerColumn | undefined>;
     private buttonClick;
+    private callButtonHandler;
     private getSelected;
-    hostData(): {
-        class: {
-            [x: string]: boolean;
-        };
-        style: {
-            zIndex: number;
-        };
-    };
-    render(): JSX.Element[];
+    private onBackdropTap;
+    private dispatchCancelHandler;
+    render(): any;
 }

@@ -1,40 +1,66 @@
-export function hapticAvailable() {
+/**
+ * Check to see if the Haptic Plugin is available
+ * @return Returns `true` or false if the plugin is available
+ */
+export const hapticAvailable = () => {
     const engine = window.TapticEngine;
     return !!engine;
-}
-export function hapticSelection() {
+};
+/**
+ * Trigger a selection changed haptic event. Good for one-time events
+ * (not for gestures)
+ */
+export const hapticSelection = () => {
     const engine = window.TapticEngine;
     if (engine) {
         engine.selection();
     }
-}
-export function hapticSelectionStart() {
+};
+/**
+ * Tell the haptic engine that a gesture for a selection change is starting.
+ */
+export const hapticSelectionStart = () => {
     const engine = window.TapticEngine;
     if (engine) {
         engine.gestureSelectionStart();
     }
-}
-export function hapticSelectionChanged() {
+};
+/**
+ * Tell the haptic engine that a selection changed during a gesture.
+ */
+export const hapticSelectionChanged = () => {
     const engine = window.TapticEngine;
     if (engine) {
         engine.gestureSelectionChanged();
     }
-}
-export function hapticSelectionEnd() {
+};
+/**
+ * Tell the haptic engine we are done with a gesture. This needs to be
+ * called lest resources are not properly recycled.
+ */
+export const hapticSelectionEnd = () => {
     const engine = window.TapticEngine;
     if (engine) {
         engine.gestureSelectionEnd();
     }
-}
-export function hapticNotification(options) {
+};
+/**
+ * Use this to indicate success/failure/warning to the user.
+ * options should be of the type `{ type: 'success' }` (or `warning`/`error`)
+ */
+export const hapticNotification = (options) => {
     const engine = window.TapticEngine;
     if (engine) {
         engine.notification(options);
     }
-}
-export function hapticImpact(options) {
+};
+/**
+ * Use this to indicate success/failure/warning to the user.
+ * options should be of the type `{ style: 'light' }` (or `medium`/`heavy`)
+ */
+export const hapticImpact = (options) => {
     const engine = window.TapticEngine;
     if (engine) {
         engine.impact(options);
     }
-}
+};

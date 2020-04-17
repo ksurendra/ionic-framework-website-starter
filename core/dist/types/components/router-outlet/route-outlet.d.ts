@@ -1,18 +1,17 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter, QueueApi } from '../../stencil.core';
-import { AnimationBuilder, ComponentProps, Config, FrameworkDelegate, Mode, NavOutlet, RouteID, RouteWrite, RouterDirection, RouterOutletOptions, SwipeGestureHandler } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { AnimationBuilder, ComponentProps, FrameworkDelegate, NavOutlet, RouteID, RouteWrite, RouterDirection, RouterOutletOptions, SwipeGestureHandler } from '../../interface';
 export declare class RouterOutlet implements ComponentInterface, NavOutlet {
     private activeEl;
     private activeComponent;
     private waitPromise?;
     private gesture?;
     private ani?;
+    private animationEnabled;
     el: HTMLElement;
-    config: Config;
-    win: Window;
-    queue: QueueApi;
-    /** @internal */
-    mode: Mode;
+    /**
+     * The mode determines which platform styles to use.
+     */
+    mode: import("../../interface").Mode;
     /** @internal */
     delegate?: FrameworkDelegate;
     /**
@@ -33,9 +32,9 @@ export declare class RouterOutlet implements ComponentInterface, NavOutlet {
     ionNavWillChange: EventEmitter<void>;
     /** @internal */
     ionNavDidChange: EventEmitter<void>;
+    connectedCallback(): Promise<void>;
     componentWillLoad(): void;
-    componentDidLoad(): Promise<void>;
-    componentDidUnload(): void;
+    disconnectedCallback(): void;
     /** @internal */
     commit(enteringEl: HTMLElement, leavingEl: HTMLElement | undefined, opts?: RouterOutletOptions): Promise<boolean>;
     /** @internal */
@@ -45,5 +44,5 @@ export declare class RouterOutlet implements ComponentInterface, NavOutlet {
     private setRoot;
     private transition;
     private lock;
-    render(): JSX.Element;
+    render(): any;
 }

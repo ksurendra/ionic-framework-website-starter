@@ -1,4 +1,4 @@
-export function matchesRedirect(input, route) {
+export const matchesRedirect = (input, route) => {
     const { from, to } = route;
     if (to === undefined) {
         return false;
@@ -16,11 +16,11 @@ export function matchesRedirect(input, route) {
         }
     }
     return from.length === input.length;
-}
-export function routeRedirect(path, routes) {
+};
+export const routeRedirect = (path, routes) => {
     return routes.find(route => matchesRedirect(path, route));
-}
-export function matchesIDs(ids, chain) {
+};
+export const matchesIDs = (ids, chain) => {
     const len = Math.min(ids.length, chain.length);
     let i = 0;
     for (; i < len; i++) {
@@ -29,8 +29,8 @@ export function matchesIDs(ids, chain) {
         }
     }
     return i;
-}
-export function matchesPath(inputPath, chain) {
+};
+export const matchesPath = (inputPath, chain) => {
     const segments = new RouterSegments(inputPath);
     let matchesDefault = false;
     let allparams;
@@ -42,6 +42,7 @@ export function matchesPath(inputPath, chain) {
         else {
             for (const segment of path) {
                 const data = segments.next();
+                // data param
                 if (segment[0] === ':') {
                     if (data === '') {
                         return null;
@@ -71,8 +72,8 @@ export function matchesPath(inputPath, chain) {
         }));
     }
     return chain;
-}
-export function mergeParams(a, b) {
+};
+export const mergeParams = (a, b) => {
     if (!a && b) {
         return b;
     }
@@ -80,11 +81,11 @@ export function mergeParams(a, b) {
         return a;
     }
     else if (a && b) {
-        return Object.assign({}, a, b);
+        return Object.assign(Object.assign({}, a), b);
     }
     return undefined;
-}
-export function routerIDsToChain(ids, chains) {
+};
+export const routerIDsToChain = (ids, chains) => {
     let match = null;
     let maxMatches = 0;
     const plainIDs = ids.map(i => i.id);
@@ -103,8 +104,8 @@ export function routerIDsToChain(ids, chains) {
         }));
     }
     return null;
-}
-export function routerPathToChain(path, chains) {
+};
+export const routerPathToChain = (path, chains) => {
     let match = null;
     let matches = 0;
     for (const chain of chains) {
@@ -118,8 +119,8 @@ export function routerPathToChain(path, chains) {
         }
     }
     return match;
-}
-export function computePriority(chain) {
+};
+export const computePriority = (chain) => {
     let score = 1;
     let level = 1;
     for (const route of chain) {
@@ -134,7 +135,7 @@ export function computePriority(chain) {
         }
     }
     return score;
-}
+};
 export class RouterSegments {
     constructor(path) {
         this.path = path.slice();

@@ -1,17 +1,15 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { Mode } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Slides implements ComponentInterface {
     private scrollbarEl?;
     private paginationEl?;
-    private didInit;
+    private swiperReady;
+    private mutationO?;
     private readySwiper;
     private swiper;
-    el: HTMLStencilElement;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
+    el: HTMLIonSlidesElement;
     /**
      * Options to pass to the swiper instance.
      * See http://idangero.us/swiper/api/ for valid options
@@ -90,24 +88,40 @@ export declare class Slides implements ComponentInterface {
      * Emitted when the user releases the touch.
      */
     ionSlideTouchEnd: EventEmitter<void>;
-    componentDidLoad(): void;
-    componentDidUnload(): Promise<void>;
-    onSlideChanged(): void;
+    connectedCallback(): void;
+    disconnectedCallback(): Promise<void>;
     /**
      * Update the underlying slider implementation. Call this if you've added or removed
      * child slides.
      */
     update(): Promise<void>;
     /**
+     * Force swiper to update its height (when autoHeight is enabled) for the duration
+     * equal to 'speed' parameter.
+     *
+     * @param speed The transition duration (in ms).
+     */
+    updateAutoHeight(speed?: number): Promise<void>;
+    /**
      * Transition to the specified slide.
+     *
+     * @param index The index of the slide to transition to.
+     * @param speed The transition duration (in ms).
+     * @param runCallbacks If true, the transition will produce [Transition/SlideChange][Start/End] transition events.
      */
     slideTo(index: number, speed?: number, runCallbacks?: boolean): Promise<void>;
     /**
      * Transition to the next slide.
+     *
+     * @param speed The transition duration (in ms).
+     * @param runCallbacks If true, the transition will produce [Transition/SlideChange][Start/End] transition events.
      */
     slideNext(speed?: number, runCallbacks?: boolean): Promise<void>;
     /**
      * Transition to the previous slide.
+     *
+     * @param speed The transition duration (in ms).
+     * @param runCallbacks If true, the transition will produce the [Transition/SlideChange][Start/End] transition events.
      */
     slidePrev(speed?: number, runCallbacks?: boolean): Promise<void>;
     /**
@@ -124,7 +138,6 @@ export declare class Slides implements ComponentInterface {
     length(): Promise<number>;
     /**
      * Get whether or not the current slide is the last slide.
-     *
      */
     isEnd(): Promise<boolean>;
     /**
@@ -140,24 +153,30 @@ export declare class Slides implements ComponentInterface {
      */
     stopAutoplay(): Promise<void>;
     /**
-     * Lock or unlock the ability to slide to the next slides.
+     * Lock or unlock the ability to slide to the next slide.
+     *
+     * @param lock If `true`, disable swiping to the next slide.
      */
-    lockSwipeToNext(shouldLockSwipeToNext: boolean): Promise<void>;
+    lockSwipeToNext(lock: boolean): Promise<void>;
     /**
-     * Lock or unlock the ability to slide to the previous slides.
+     * Lock or unlock the ability to slide to the previous slide.
+     *
+     * @param lock If `true`, disable swiping to the previous slide.
      */
-    lockSwipeToPrev(shouldLockSwipeToPrev: boolean): Promise<void>;
+    lockSwipeToPrev(lock: boolean): Promise<void>;
     /**
-     * Lock or unlock the ability to slide to change slides.
+     * Lock or unlock the ability to slide to the next or previous slide.
+     *
+     * @param lock If `true`, disable swiping to the next and previous slide.
      */
-    lockSwipes(shouldLockSwipes: boolean): Promise<void>;
+    lockSwipes(lock: boolean): Promise<void>;
+    /**
+     * Get the Swiper instance.
+     * Use this to access the full Swiper API.
+     * See https://idangero.us/swiper/api/ for all API options.
+     */
+    getSwiper(): Promise<any>;
     private initSwiper;
-    private getSwiper;
     private normalizeOptions;
-    hostData(): {
-        class: {
-            'swiper-container': boolean;
-        };
-    };
-    render(): JSX.Element[];
+    render(): any;
 }

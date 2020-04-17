@@ -1,9 +1,9 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
+import { ComponentInterface } from '../../stencil-public-runtime';
 export declare class SkeletonText implements ComponentInterface {
+    el: HTMLElement;
     /**
-     * Width for the element to render at.
+     * If `true`, the skeleton text will animate.
      */
-    width: string;
-    render(): JSX.Element;
+    animated: boolean;
+    render(): any;
 }

@@ -16,6 +16,6 @@ export declare class ViewController {
      */
     _destroy(): void;
 }
-export declare function matches(view: ViewController | undefined, id: string, params: ComponentProps | undefined): view is ViewController;
-export declare function convertToView(page: any, params: ComponentProps | undefined): ViewController | null;
-export declare function convertToViews(pages: any[]): ViewController[];
+export declare const matches: (view: ViewController | undefined, id: string, params: ComponentProps<null> | undefined) => view is ViewController;
+export declare const convertToView: (page: any, params: ComponentProps<null> | undefined) => ViewController | null;
+export declare const convertToViews: (pages: any[]) => ViewController[];

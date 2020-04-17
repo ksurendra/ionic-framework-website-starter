@@ -1,1 +1,1 @@
-export declare function enableHideCaretOnScroll(componentEl: HTMLElement, inputEl: HTMLInputElement | undefined, scrollEl: HTMLIonContentElement | undefined): () => void;
+export declare const enableHideCaretOnScroll: (componentEl: HTMLElement, inputEl: HTMLInputElement | HTMLTextAreaElement | undefined, scrollEl: HTMLIonContentElement | undefined) => () => void;

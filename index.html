@@ -2,12 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">    
-    <!-- <script type='text/javascript' src="core/dist/ionic.js"></script> -->
-    <link rel="stylesheet" href="https://unpkg.com/@ionic/core@5.0.0/css/ionic.bundle.css">
-    <!-- <link rel="stylesheet" href="core/css/ionic.bundle.css"> -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/@ionic/core@5.0.0/css/ionic.bundle.css"> -->
+    <link rel="stylesheet" href="core/css/ionic.bundle.css">
   </head>
   <body>
-    <h1>Basic IonicFrameowork Usage Example</h1>
+    <h1>Basic Ionic Frameowork (v5.0.0) Usage Example</h1>
     <p>
     <br>
     <ion-title>This is <b>ion-title</b> Component</ion-title>
@@ -19,7 +18,12 @@
         <ion-icon name="close"></ion-icon> Clear
       </ion-button>
     </p>
-      <script src="https://unpkg.com/@ionic/core@5.0.0/dist/ionic.js"></script>
-      <script src="https://unpkg.com/ionicons@5.0.0/dist/ionicons.js"></script>
+
+    <script type="module" src="core/dist/ionic/ionic.js"></script>
+    <script nomodule src="core/dist/ionic/ionic.esm.js"></script>
+    <!--
+    <script src="https://unpkg.com/@ionic/core@5.0.0/dist/ionic.js"></script>
+    <script src="https://unpkg.com/ionicons@5.0.0/dist/ionicons.js"></script>
+    -->
   </body>
 </html>

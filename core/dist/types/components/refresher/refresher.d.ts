@@ -1,14 +1,21 @@
-import { ComponentInterface, EventEmitter, QueueApi } from '../../stencil.core';
-import { Mode, RefresherEventDetail } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { RefresherEventDetail } from '../../interface';
 export declare class Refresher implements ComponentInterface {
     private appliedStyles;
     private didStart;
     private progress;
     private scrollEl?;
+    private backgroundContentEl?;
+    private scrollListenerCallback?;
     private gesture?;
-    mode: Mode;
-    el: HTMLElement;
-    queue: QueueApi;
+    private pointerDown;
+    private needsCompletion;
+    private didRefresh;
+    private lastVelocityY;
+    private elementToTransform?;
+    private animations;
+    private nativeRefresher;
+    el: HTMLIonRefresherElement;
     /**
      * The current state which the refresher is in. The refresher's states include:
      *
@@ -23,22 +30,45 @@ export declare class Refresher implements ComponentInterface {
     /**
      * The minimum distance the user must pull down until the
      * refresher will go into the `refreshing` state.
+     * Does not apply when the refresher content uses a spinner,
+     * enabling the native refresher.
      */
     pullMin: number;
     /**
      * The maximum distance of the pull until the refresher
      * will automatically go into the `refreshing` state.
      * Defaults to the result of `pullMin + 60`.
+     * Does not apply when  the refresher content uses a spinner,
+     * enabling the native refresher.
      */
     pullMax: number;
     /**
      * Time it takes to close the refresher.
+     * Does not apply when the refresher content uses a spinner,
+     * enabling the native refresher.
      */
     closeDuration: string;
     /**
      * Time it takes the refresher to to snap back to the `refreshing` state.
+     * Does not apply when the refresher content uses a spinner,
+     * enabling the native refresher.
      */
     snapbackDuration: string;
+    /**
+     * How much to multiply the pull speed by. To slow the pull animation down,
+     * pass a number less than `1`. To speed up the pull, pass a number greater
+     * than `1`. The default value is `1` which is equal to the speed of the cursor.
+     * If a negative value is passed in, the factor will be `1` instead.
+     *
+     * For example: If the value passed is `1.2` and the content is dragged by
+     * `10` pixels, instead of `10` pixels the content will be pulled by `12` pixels
+     * (an increase of 20 percent). If the value passed is `0.8`, the dragged amount
+     * will be `8` pixels, less than the amount the cursor has moved.
+     *
+     * Does not apply when the refresher content uses a spinner,
+     * enabling the native refresher.
+     */
+    pullFactor: number;
     /**
      * If `true`, the refresher will be hidden.
      */
@@ -59,8 +89,15 @@ export declare class Refresher implements ComponentInterface {
      * Emitted when the user begins to start pulling down.
      */
     ionStart: EventEmitter<void>;
-    componentDidLoad(): Promise<void>;
-    componentDidUnload(): void;
+    private checkNativeRefresher;
+    private destroyNativeRefresher;
+    private resetNativeRefresher;
+    private setupiOSNativeRefresher;
+    private setupMDNativeRefresher;
+    private setupNativeRefresher;
+    componentDidUpdate(): void;
+    connectedCallback(): Promise<void>;
+    disconnectedCallback(): void;
     /**
      * Call `complete()` when your async operation has completed.
      * For example, the `refreshing` state is while the app is performing
@@ -70,11 +107,11 @@ export declare class Refresher implements ComponentInterface {
      * the refresher. This method also changes the refresher's state from
      * `refreshing` to `completing`.
      */
-    complete(): void;
+    complete(): Promise<void>;
     /**
      * Changes the refresher's state from `refreshing` to `cancelling`.
      */
-    cancel(): void;
+    cancel(): Promise<void>;
     /**
      * A number representing how far down the user has pulled.
      * The number `0` represents the user hasn't pulled down at all. The
@@ -92,15 +129,5 @@ export declare class Refresher implements ComponentInterface {
     private beginRefresh;
     private close;
     private setCss;
-    hostData(): {
-        slot: string;
-        class: {
-            'refresher-active': boolean;
-            'refresher-pulling': boolean;
-            'refresher-ready': boolean;
-            'refresher-refreshing': boolean;
-            'refresher-cancelling': boolean;
-            'refresher-completing': boolean;
-        };
-    };
+    render(): any;
 }

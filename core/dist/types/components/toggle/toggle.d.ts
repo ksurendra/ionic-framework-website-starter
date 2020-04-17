@@ -1,18 +1,15 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter, QueueApi } from '../../stencil.core';
-import { Color, Mode, StyleEventDetail, ToggleChangeEventDetail } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { Color, StyleEventDetail, ToggleChangeEventDetail } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Toggle implements ComponentInterface {
     private inputId;
-    private pivotX;
     private gesture?;
+    private buttonEl?;
+    private lastDrag;
     el: HTMLElement;
-    queue: QueueApi;
     activated: boolean;
-    keyFocus: boolean;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * The color to use from your application's color palette.
      * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
@@ -58,38 +55,17 @@ export declare class Toggle implements ComponentInterface {
     ionStyle: EventEmitter<StyleEventDetail>;
     checkedChanged(isChecked: boolean): void;
     disabledChanged(): void;
-    onClick(): void;
-    onKeyUp(): void;
-    onFocus(): void;
-    onBlur(): void;
+    connectedCallback(): Promise<void>;
+    disconnectedCallback(): void;
     componentWillLoad(): void;
-    componentDidLoad(): Promise<void>;
     private emitStyle;
     private onStart;
     private onMove;
     private onEnd;
     private getValue;
-    hostData(): {
-        'role': string;
-        'tabindex': string;
-        'aria-disabled': string | null;
-        'aria-checked': string;
-        'aria-labelledby': string;
-        class: {
-            'in-item': boolean;
-            'toggle-activated': boolean;
-            'toggle-checked': boolean;
-            'toggle-disabled': boolean;
-            'toggle-key': boolean;
-            'interactive': boolean;
-        } | {
-            'in-item': boolean;
-            'toggle-activated': boolean;
-            'toggle-checked': boolean;
-            'toggle-disabled': boolean;
-            'toggle-key': boolean;
-            'interactive': boolean;
-        };
-    };
-    render(): JSX.Element;
+    private setFocus;
+    private onClick;
+    private onFocus;
+    private onBlur;
+    render(): any;
 }

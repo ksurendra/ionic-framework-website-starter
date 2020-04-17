@@ -1,6 +1,7 @@
-export function startHardwareBackButton(win) {
+export const startHardwareBackButton = () => {
+    const doc = document;
     let busy = false;
-    win.document.addEventListener('backbutton', () => {
+    doc.addEventListener('backbutton', () => {
         if (busy) {
             return;
         }
@@ -13,7 +14,7 @@ export function startHardwareBackButton(win) {
                 }
             }
         });
-        win.document.dispatchEvent(ev);
+        doc.dispatchEvent(ev);
         if (handlers.length > 0) {
             let selectedPriority = Number.MIN_SAFE_INTEGER;
             let selectedHandler;
@@ -27,8 +28,8 @@ export function startHardwareBackButton(win) {
             executeAction(selectedHandler).then(() => busy = false);
         }
     });
-}
-async function executeAction(handler) {
+};
+const executeAction = async (handler) => {
     try {
         if (handler) {
             const result = handler();
@@ -40,4 +41,6 @@ async function executeAction(handler) {
     catch (e) {
         console.error(e);
     }
-}
+};
+export const OVERLAY_BACK_BUTTON_PRIORITY = 100;
+export const MENU_BACK_BUTTON_PRIORITY = 99; // 1 less than overlay priority since menu is displayed behind overlays

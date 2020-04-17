@@ -1,15 +1,24 @@
-export function iosEnterAnimation(AnimationC, baseEl) {
-    const baseAnimation = new AnimationC();
-    const backdropAnimation = new AnimationC();
-    backdropAnimation.addElement(baseEl.querySelector('ion-backdrop'));
-    const wrapperAnimation = new AnimationC();
-    wrapperAnimation.addElement(baseEl.querySelector('.picker-wrapper'));
-    backdropAnimation.fromTo('opacity', 0.01, 0.26);
-    wrapperAnimation.fromTo('translateY', '100%', '0%');
-    return Promise.resolve(baseAnimation
+import { createAnimation } from '../../../utils/animation/animation';
+/**
+ * iOS Picker Enter Animation
+ */
+export const iosEnterAnimation = (baseEl) => {
+    const baseAnimation = createAnimation();
+    const backdropAnimation = createAnimation();
+    const wrapperAnimation = createAnimation();
+    backdropAnimation
+        .addElement(baseEl.querySelector('ion-backdrop'))
+        .fromTo('opacity', 0.01, 'var(--backdrop-opacity)')
+        .beforeStyles({
+        'pointer-events': 'none'
+    })
+        .afterClearStyles(['pointer-events']);
+    wrapperAnimation
+        .addElement(baseEl.querySelector('.picker-wrapper'))
+        .fromTo('transform', 'translateY(100%)', 'translateY(0%)');
+    return baseAnimation
         .addElement(baseEl)
         .easing('cubic-bezier(.36,.66,.04,1)')
         .duration(400)
-        .add(backdropAnimation)
-        .add(wrapperAnimation));
-}
+        .addAnimation([backdropAnimation, wrapperAnimation]);
+};

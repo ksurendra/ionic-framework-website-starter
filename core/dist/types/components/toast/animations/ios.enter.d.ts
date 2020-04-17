@@ -2,4 +2,4 @@ import { Animation } from '../../../interface';
 /**
  * iOS Toast Enter Animation
  */
-export declare function iosEnterAnimation(AnimationC: Animation, baseEl: ShadowRoot, position: string): Promise<Animation>;
+export declare const iosEnterAnimation: (baseEl: ShadowRoot, position: string) => Animation;

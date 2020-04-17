@@ -1,4 +1,6 @@
-export function addEventListener(el, eventName, callback, opts) {
+export const addEventListener = (el, eventName, callback, opts) => {
+    // use event listener options when supported
+    // otherwise it's just a boolean for the "capture" arg
     const listenerOpts = supportsPassive(el) ? {
         'capture': !!opts.capture,
         'passive': !!opts.passive,
@@ -17,9 +19,8 @@ export function addEventListener(el, eventName, callback, opts) {
     return () => {
         el[remove](eventName, callback, listenerOpts);
     };
-}
-let _sPassive;
-function supportsPassive(node) {
+};
+const supportsPassive = (node) => {
     if (_sPassive === undefined) {
         try {
             const opts = Object.defineProperty({}, 'passive', {
@@ -34,4 +35,5 @@ function supportsPassive(node) {
         }
     }
     return !!_sPassive;
-}
+};
+let _sPassive;

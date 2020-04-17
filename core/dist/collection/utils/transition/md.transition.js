@@ -1,15 +1,19 @@
-const TRANSLATEY = 'translateY';
-const OFF_BOTTOM = '40px';
-const CENTER = '0px';
-export function mdTransitionAnimation(AnimationC, _, opts) {
+import { createAnimation } from '../animation/animation';
+import { getIonPageElement } from '../transition';
+export const mdTransitionAnimation = (_, opts) => {
+    const OFF_BOTTOM = '40px';
+    const CENTER = '0px';
+    const backDirection = (opts.direction === 'back');
     const enteringEl = opts.enteringEl;
     const leavingEl = opts.leavingEl;
     const ionPageElement = getIonPageElement(enteringEl);
-    const rootTransition = new AnimationC();
+    const enteringToolbarEle = ionPageElement.querySelector('ion-toolbar');
+    const rootTransition = createAnimation();
     rootTransition
         .addElement(ionPageElement)
+        .fill('both')
         .beforeRemoveClass('ion-page-invisible');
-    const backDirection = (opts.direction === 'back');
+    // animate the component itself
     if (backDirection) {
         rootTransition
             .duration(opts.duration || 200)
@@ -19,35 +23,28 @@ export function mdTransitionAnimation(AnimationC, _, opts) {
         rootTransition
             .duration(opts.duration || 280)
             .easing('cubic-bezier(0.36,0.66,0.04,1)')
-            .fromTo(TRANSLATEY, OFF_BOTTOM, CENTER, true)
-            .fromTo('opacity', 0.01, 1, true);
+            .fromTo('transform', `translateY(${OFF_BOTTOM})`, `translateY(${CENTER})`)
+            .fromTo('opacity', 0.01, 1);
     }
-    const enteringToolbarEle = ionPageElement.querySelector('ion-toolbar');
+    // Animate toolbar if it's there
     if (enteringToolbarEle) {
-        const enteringToolBar = new AnimationC();
+        const enteringToolBar = createAnimation();
         enteringToolBar.addElement(enteringToolbarEle);
-        rootTransition.add(enteringToolBar);
+        rootTransition.addAnimation(enteringToolBar);
     }
+    // setup leaving view
     if (leavingEl && backDirection) {
+        // leaving content
         rootTransition
             .duration(opts.duration || 200)
             .easing('cubic-bezier(0.47,0,0.745,0.715)');
-        const leavingPage = new AnimationC();
+        const leavingPage = createAnimation();
         leavingPage
             .addElement(getIonPageElement(leavingEl))
-            .fromTo(TRANSLATEY, CENTER, OFF_BOTTOM)
+            .afterStyles({ 'display': 'none' })
+            .fromTo('transform', `translateY(${CENTER})`, `translateY(${OFF_BOTTOM})`)
             .fromTo('opacity', 1, 0);
-        rootTransition.add(leavingPage);
+        rootTransition.addAnimation(leavingPage);
     }
-    return Promise.resolve(rootTransition);
-}
-function getIonPageElement(element) {
-    if (element.classList.contains('ion-page')) {
-        return element;
-    }
-    const ionPage = element.querySelector(':scope > .ion-page, :scope > ion-nav, :scope > ion-tabs');
-    if (ionPage) {
-        return ionPage;
-    }
-    return element;
-}
+    return rootTransition;
+};

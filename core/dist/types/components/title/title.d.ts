@@ -1,8 +1,6 @@
-import '../../stencil.core';
-import { ComponentInterface } from '../../stencil.core';
-import { Color, Mode } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { Color, StyleEventDetail } from '../../interface';
 export declare class ToolbarTitle implements ComponentInterface {
-    mode: Mode;
     el: HTMLElement;
     /**
      * The color to use from your application's color palette.
@@ -10,9 +8,18 @@ export declare class ToolbarTitle implements ComponentInterface {
      * For more information on colors, see [theming](/docs/theming/basics).
      */
     color?: Color;
-    private getMode;
-    hostData(): {
-        class: {};
-    };
-    render(): JSX.Element[];
+    /**
+     * The size of the toolbar title.
+     */
+    size?: 'large' | 'small';
+    /**
+     * Emitted when the styles change.
+     * @internal
+     */
+    ionStyle: EventEmitter<StyleEventDetail>;
+    protected sizeChanged(): void;
+    connectedCallback(): void;
+    private emitStyle;
+    private getSize;
+    render(): any;
 }

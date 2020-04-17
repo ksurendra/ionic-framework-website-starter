@@ -1,20 +1,19 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { Animation, AnimationBuilder, ComponentProps, ComponentRef, Config, FrameworkDelegate, Mode, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { Animation, AnimationBuilder, ComponentProps, ComponentRef, FrameworkDelegate, OverlayEventDetail, OverlayInterface } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Modal implements ComponentInterface, OverlayInterface {
+    private gesture?;
     private usersElement?;
+    private gestureAnimationDismissing;
     presented: boolean;
-    animation: Animation | undefined;
-    el: HTMLElement;
-    config: Config;
+    animation?: Animation;
+    el: HTMLIonModalElement;
     /** @internal */
     overlayIndex: number;
     /** @internal */
     delegate?: FrameworkDelegate;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
      */
@@ -53,6 +52,15 @@ export declare class Modal implements ComponentInterface, OverlayInterface {
      */
     animated: boolean;
     /**
+     * If `true`, the modal can be swiped to dismiss. Only applies in iOS mode.
+     */
+    swipeToClose: boolean;
+    /**
+     * The element that presented the modal. This is used for card presentation effects
+     * and for stacking multiple modals on top of each other. Only applies in iOS mode.
+     */
+    presentingElement?: HTMLElement;
+    /**
      * Emitted after the modal has presented.
      */
     didPresent: EventEmitter<void>;
@@ -68,35 +76,28 @@ export declare class Modal implements ComponentInterface, OverlayInterface {
      * Emitted after the modal has dismissed.
      */
     didDismiss: EventEmitter<OverlayEventDetail>;
-    protected onDismiss(ev: UIEvent): void;
-    protected onBackdropTap(): void;
-    protected lifecycle(modalEvent: CustomEvent): void;
+    constructor();
     /**
      * Present the modal overlay after it has been created.
      */
     present(): Promise<void>;
     /**
      * Dismiss the modal overlay after it has been presented.
+     *
+     * @param data Any data to emit in the dismiss events.
+     * @param role The role of the element that is dismissing the modal. For example, 'cancel' or 'backdrop'.
      */
     dismiss(data?: any, role?: string): Promise<boolean>;
     /**
      * Returns a promise that resolves when the modal did dismiss.
-     *
      */
     onDidDismiss(): Promise<OverlayEventDetail>;
     /**
      * Returns a promise that resolves when the modal will dismiss.
-     *
      */
     onWillDismiss(): Promise<OverlayEventDetail>;
-    hostData(): {
-        'no-router': boolean;
-        class: {
-            [x: string]: boolean;
-        };
-        style: {
-            zIndex: number;
-        };
-    };
-    render(): JSX.Element[];
+    private onBackdropTap;
+    private onDismiss;
+    private onLifecycle;
+    render(): any;
 }

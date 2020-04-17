@@ -1,11 +1,9 @@
-import '../../stencil.core';
-import { ComponentInterface, QueueApi } from '../../stencil.core';
-import { Mode, PickerColumn } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { PickerColumn } from '../../interface';
 /**
  * @internal
  */
 export declare class PickerColumnCmp implements ComponentInterface {
-    mode: Mode;
     private bounceFrom;
     private lastIndex?;
     private minY;
@@ -21,12 +19,18 @@ export declare class PickerColumnCmp implements ComponentInterface {
     private tmrId;
     private noAnimate;
     el: HTMLElement;
-    queue: QueueApi;
+    /**
+     * Emitted when the selected value has changed
+     * @internal
+     */
+    ionPickerColChange: EventEmitter<PickerColumn>;
     /** Picker column data */
     col: PickerColumn;
-    componentWillLoad(): void;
-    componentDidLoad(): Promise<void>;
-    componentDidUnload(): void;
+    protected colChanged(): void;
+    connectedCallback(): Promise<void>;
+    componentDidLoad(): void;
+    disconnectedCallback(): void;
+    private emitColChange;
     private setSelected;
     private update;
     private decelerate;
@@ -35,15 +39,5 @@ export declare class PickerColumnCmp implements ComponentInterface {
     private onMove;
     private onEnd;
     private refresh;
-    hostData(): {
-        class: {
-            'picker-col': boolean;
-            'picker-opts-left': boolean;
-            'picker-opts-right': boolean;
-        };
-        style: {
-            'max-width': string | undefined;
-        };
-    };
-    render(): (JSX.Element | undefined)[];
+    render(): any;
 }

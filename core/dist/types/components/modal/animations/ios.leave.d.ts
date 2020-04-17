@@ -2,4 +2,4 @@ import { Animation } from '../../../interface';
 /**
  * iOS Modal Leave Animation
  */
-export declare function iosLeaveAnimation(AnimationC: Animation, baseEl: HTMLElement): Promise<Animation>;
+export declare const iosLeaveAnimation: (baseEl: HTMLElement, presentingEl?: HTMLElement | undefined, duration?: number) => Animation;

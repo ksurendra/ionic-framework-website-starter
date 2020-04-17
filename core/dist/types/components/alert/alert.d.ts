@@ -1,21 +1,17 @@
-import '../../stencil.core';
-import { ComponentInterface, EventEmitter } from '../../stencil.core';
-import { AlertButton, AlertInput, Animation, AnimationBuilder, Config, Mode, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { ComponentInterface, EventEmitter } from '../../stencil-public-runtime';
+import { AlertButton, AlertInput, AnimationBuilder, OverlayEventDetail, OverlayInterface } from '../../interface';
+/**
+ * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ */
 export declare class Alert implements ComponentInterface, OverlayInterface {
     private activeId?;
     private inputType?;
     private processedInputs;
     private processedButtons;
     presented: boolean;
-    animation?: Animation;
-    el: HTMLStencilElement;
-    config: Config;
+    el: HTMLIonAlertElement;
     /** @internal */
     overlayIndex: number;
-    /**
-     * The mode determines which platform styles to use.
-     */
-    mode: Mode;
     /**
      * If `true`, the keyboard will be automatically dismissed when the overlay is presented.
      */
@@ -43,6 +39,12 @@ export declare class Alert implements ComponentInterface, OverlayInterface {
     subHeader?: string;
     /**
      * The main message to be displayed in the alert.
+     * `message` can accept either plaintext or HTML as a string.
+     * To display characters normally reserved for HTML, they
+     * must be escaped. For example `<Ionic>` would become
+     * `&lt;Ionic&gt;`
+     *
+     * For more information: [Security Documentation](https://ionicframework.com/docs/faq/security)
      */
     message?: string;
     /**
@@ -59,6 +61,8 @@ export declare class Alert implements ComponentInterface, OverlayInterface {
     backdropDismiss: boolean;
     /**
      * If `true`, the alert will be translucent.
+     * Only applies when the mode is `"ios"` and the device supports
+     * [`backdrop-filter`](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter#Browser_compatibility).
      */
     translucent: boolean;
     /**
@@ -83,25 +87,28 @@ export declare class Alert implements ComponentInterface, OverlayInterface {
     didDismiss: EventEmitter<OverlayEventDetail>;
     buttonsChanged(): void;
     inputsChanged(): void;
+    constructor();
     componentWillLoad(): void;
-    protected onBackdropTap(): void;
-    protected dispatchCancelHandler(ev: CustomEvent): void;
     /**
      * Present the alert overlay after it has been created.
      */
     present(): Promise<void>;
     /**
      * Dismiss the alert overlay after it has been presented.
+     *
+     * @param data Any data to emit in the dismiss events.
+     * @param role The role of the element that is dismissing the alert.
+     * This can be useful in a button handler for determining which button was
+     * clicked to dismiss the alert.
+     * Some examples include: ``"cancel"`, `"destructive"`, "selected"`, and `"backdrop"`.
      */
     dismiss(data?: any, role?: string): Promise<boolean>;
     /**
      * Returns a promise that resolves when the alert did dismiss.
-     *
      */
     onDidDismiss(): Promise<OverlayEventDetail>;
     /**
      * Returns a promise that resolves when the alert will dismiss.
-     *
      */
     onWillDismiss(): Promise<OverlayEventDetail>;
     private rbClick;
@@ -113,15 +120,8 @@ export declare class Alert implements ComponentInterface, OverlayInterface {
     private renderCheckbox;
     private renderRadio;
     private renderInput;
-    hostData(): {
-        role: string;
-        style: {
-            zIndex: number;
-        };
-        class: {
-            'alert-translucent': boolean;
-        };
-    };
+    private onBackdropTap;
+    private dispatchCancelHandler;
     private renderAlertButtons;
-    render(): JSX.Element[];
+    render(): any;
 }
